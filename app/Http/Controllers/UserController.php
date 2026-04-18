@@ -12,13 +12,21 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::paginate(10);
-        return view('users.index', compact('users'));
+        if(auth()->user()->isAdmin()) {
+            $users = User::paginate(10);
+            return view('users.index', compact('users'));
+        } else {
+            return redirect()->route('dashboard');
+        }
     }
 
     public function create()
     {
-        return view('users.create');
+        if(auth()->user()->isAdmin()) {
+            return view('users.create');
+        } else {
+            return redirect()->route('dashboard');
+        }
     }
 
     public function store(Request $request)
@@ -45,12 +53,20 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        return view('users.show', compact('user'));
+        if(auth()->user()->isAdmin()) {
+            return view('users.show', compact('user'));
+        } else {
+            return redirect()->route('dashboard');
+        }
     }
 
     public function edit(User $user)
     {
-        return view('users.edit', compact('user'));
+        if(auth()->user()->isAdmin()) {
+            return view('users.edit', compact('user'));
+        } else {
+            return redirect()->route('dashboard');
+        }
     }
 
     public function update(Request $request, User $user)

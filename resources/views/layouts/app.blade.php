@@ -31,9 +31,11 @@
                     <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('dashboard') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
                         Dashboard
                     </a>
+                    @if(auth()->user()->isAdmin())
                     <a href="{{ route('users.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('users.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
                         Users
                     </a>
+                    @endif
                     <a href="{{ route('stock-in.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('stock-in.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
                         Stock Masuk
                     </a>
