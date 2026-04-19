@@ -19,6 +19,33 @@
             </a>
         </div>
 
+        
+        <!-- Search and Actions -->
+        <div class="mb-6">
+            <form action="{{ route('users.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 w-full">
+                <div class="relative flex-1">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name or email..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                <div class="w-full sm:w-48">
+                    <select name="role" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white">
+                        <option value="">All Roles</option>
+                        <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="manager" {{ request('role') == 'manager' ? 'selected' : '' }}>Manager</option>
+                    </select>
+                </div>
+                <div class="w-full sm:w-48">
+                    <select name="status" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white">
+                        <option value="">All Status</option>
+                        <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
+                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                    </select>
+                </div>
+                </form>
+        </div>
+
         <!-- Table Card -->
         <div class="bg-white rounded-lg overflow-hidden border border-indigo-100">
             <table class="min-w-full divide-y divide-gray-200">
@@ -54,7 +81,7 @@
                             <div class="flex items-center space-x-2">
                                 <a href="{{ route('users.show', $user) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md transition-all duration-200">View</a>
                                 <a href="{{ route('users.edit', $user) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md transition-all duration-200">Edit</a>
-                                @if(auth()->user()->isAdmin() && !$user->is_approved)
+                                @if(auth()->user()->isManager() && !$user->is_approved)
                                 <form action="{{ route('users.approve', $user) }}" method="POST" class="inline approve-form">
                                     @csrf
                                     <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md transition-all duration-200">Approve</button>

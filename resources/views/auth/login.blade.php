@@ -132,22 +132,7 @@
 
         // Show Sweet Alert for errors and success messages
         document.addEventListener('DOMContentLoaded', function() {
-            @if($errors->any())
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Login Failed',
-                    html: `@foreach($errors->all() as $error){{ $error }}<br>@endforeach`,
-                    confirmButtonColor: '#6366f1',
-                    confirmButtonText: 'Try Again',
-                    background: '#fff',
-                    backdrop: 'rgba(0,0,0,0.4)',
-                    customClass: {
-                        popup: 'rounded-2xl',
-                        title: 'text-gray-800 font-semibold',
-                        htmlContainer: 'text-gray-600'
-                    }
-                });
-            @endif
+            
 
             @if(session('success'))
                 Swal.fire({

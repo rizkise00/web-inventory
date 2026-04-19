@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
             $table->boolean('is_approved')->default(false);
-            $table->enum('role', ['admin', 'user'])->default('user');
+            $table->enum('role', ['admin', 'manager'])->default('admin');
             $table->timestamps();
         });
 

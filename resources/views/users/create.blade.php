@@ -11,13 +11,7 @@
         </div>
 
         <div class="bg-white shadow-md rounded-lg p-6">
-            @if($errors->any())
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    @foreach($errors->all() as $error)
-                        <p>{{ $error }}</p>
-                    @endforeach
-                </div>
-            @endif
+            
 
             <form method="POST" action="{{ route('users.store') }}">
                 @csrf
@@ -41,10 +35,9 @@
 
                 <div class="mb-4">
                     <label for="role" class="block text-gray-700 text-sm font-bold mb-2">Role</label>
-                    <select name="role" id="role" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>User</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                    <select name="role" id="role" class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="manager" {{ old('role') == 'manager' ? 'selected' : '' }}>Manager</option>
                     </select>
                 </div>
 

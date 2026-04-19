@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Stock Masuk')
+@section('title', 'Stock In')
 
 @section('content')
 <div class="min-h-screen py-8">
@@ -8,15 +8,34 @@
         <!-- Header Section -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-4xl font-bold text-gray-800 mb-2">Stock Masuk</h1>
-                <p class="text-gray-600">Kelola data stok barang masuk</p>
+                <h1 class="text-4xl font-bold text-gray-800 mb-2">Stock In</h1>
+                <p class="text-gray-600">Kelola data incoming stock data</p>
             </div>
             <a href="{{ route('stock-in.create') }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
-                Tambah Stock Masuk
+                Add Stock In
             </a>
+        </div>
+
+        
+        <!-- Search and Actions -->
+        <div class="mb-6">
+            <form action="{{ route('stock-in.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 w-full">
+                <div class="relative flex-1">
+                    <input type="text" name="item_name" value="{{ request('item_name') }}" placeholder="Search by Item Name..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                <div class="relative flex-1">
+                    <input type="text" name="user_name" value="{{ request('user_name') }}" placeholder="Search by User Name..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    </div>
+                </div>
+                </form>
         </div>
 
         <!-- Table Card -->
@@ -26,9 +45,8 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Item Name</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Quantity</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Supplier</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created By</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created At</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -37,7 +55,7 @@
                     <tr class="hover:bg-green-50 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                                <span class="ml-3 font-medium text-gray-800">{{ $stockIn->item_name }}</span>
+                                <span class="font-medium text-gray-800">{{ $stockIn->item->name ?? 'Unknown Item' }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -45,9 +63,8 @@
                                 {{ $stockIn->quantity }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $stockIn->supplier ?: '-' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $stockIn->date->format('Y-m-d') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $stockIn->user->name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $stockIn->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <div class="flex items-center space-x-2">
                                 <a href="{{ route('stock-in.show', $stockIn) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs shadow-md transition-all duration-200">View</a>

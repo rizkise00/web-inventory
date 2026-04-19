@@ -10,19 +10,40 @@ use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        if(auth()->user()->isAdmin()) {
-            $users = User::paginate(10);
-            return view('users.index', compact('users'));
-        } else {
-            return redirect()->route('dashboard');
+        $search = $request->input('search');
+        $role = $request->input('role');
+        $status = $request->input('status');
+        
+        $query = \App\Models\User::latest();
+
+        if(!auth()->user()->isManager()) {
+            $query->where('id', auth()->id());
         }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($role) {
+            $query->where('role', $role);
+        }
+
+        if ($status) {
+            $query->where('is_approved', $status === 'approved' ? 1 : 0);
+        }
+
+        $users = $query->paginate(10)->withQueryString();
+        return view('users.index', compact('users'));
     }
 
     public function create()
     {
-        if(auth()->user()->isAdmin()) {
+        if(auth()->user()->isManager()) {
             return view('users.create');
         } else {
             return redirect()->route('dashboard');
@@ -35,7 +56,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', Rules\Password::defaults()],
-            'role' => ['required', Rule::in(['admin', 'user'])],
+            'role' => ['required', Rule::in(['admin', 'manager'])],
             'is_approved' => ['boolean'],
         ]);
 
@@ -53,7 +74,7 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        if(auth()->user()->isAdmin()) {
+        if(auth()->user()->isManager()) {
             return view('users.show', compact('user'));
         } else {
             return redirect()->route('dashboard');
@@ -62,7 +83,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        if(auth()->user()->isAdmin()) {
+        if(auth()->user()->isManager()) {
             return view('users.edit', compact('user'));
         } else {
             return redirect()->route('dashboard');
@@ -74,16 +95,19 @@ class UserController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', Rule::in(['admin', 'user'])],
+            'role' => ['required', Rule::in(['admin', 'manager'])],
             'is_approved' => ['boolean'],
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
-            'role' => $request->role,
-            'is_approved' => $request->boolean('is_approved', false),
         ];
+
+        if(auth()->user()->isManager()) {
+            $data['role'] = $request->role;
+            $data['is_approved'] = $request->has('is_approved');
+        }
 
         if ($request->filled('password')) {
             $request->validate([
@@ -113,10 +137,10 @@ class UserController extends Controller
 
     public function approve(User $user)
     {
-        $user->update(['is_approved' => true]);
-
-        return redirect()->route('users.index')
-            ->with('status', "User {$user->name} has been approved.");
+        if(auth()->user()->isManager()) {
+            $user->update(['is_approved' => true]);
+            return back()->with('success', 'User approved successfully.');
+        }
     }
 
     public function reject(User $user)

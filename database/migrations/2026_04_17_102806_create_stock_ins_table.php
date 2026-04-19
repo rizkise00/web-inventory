@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('item_name');
             $table->integer('quantity');
-            $table->string('supplier')->nullable();
             $table->date('date');
             $table->text('notes')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
