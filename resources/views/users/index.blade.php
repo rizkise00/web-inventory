@@ -47,7 +47,7 @@
         </div>
 
         <!-- Table Card -->
-        <div class="bg-white rounded-lg overflow-hidden border border-indigo-100">
+        <div class="bg-white rounded-lg overflow-x-auto border border-indigo-100 shadow-sm">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                     <tr>

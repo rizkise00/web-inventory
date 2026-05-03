@@ -41,21 +41,22 @@
         </div>
 
         <!-- Table Card -->
-        <div class="bg-white rounded-lg overflow-hidden border border-green-100">
+        <div class="bg-white rounded-lg overflow-x-auto border border-green-100 shadow-sm">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
                     <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Item Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Product</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Qty</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
-                        
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
                     @foreach($maintenances as $maintenance)
                     <tr class="hover:bg-green-50 transition-colors duration-200">
-                        <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ $maintenance->item_name }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ $maintenance->item->name ?? 'Unknown' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-800">{{ $maintenance->quantity }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-600">{{ $maintenance->date->format('Y-m-d') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($maintenance->status === 'Completed')

@@ -15,8 +15,8 @@
 
         <div class="bg-white shadow-md rounded-lg p-6">
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Item Name</label>
-                <p class="text-gray-900">{{ $stockIn->item->name ?? 'Unknown Item' }}</p>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Product Name</label>
+                <p class="text-gray-900">{{ $stockIn->item->name ?? 'Unknown' }}</p>
             </div>
 
             <div class="mb-4">
@@ -25,13 +25,23 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Notes</label>
-                <p class="text-gray-900">{{ $stockIn->notes ?: '-' }}</p>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Unit Price</label>
+                <p class="text-gray-900">Rp {{ number_format($stockIn->unit_price, 0, ',', '.') }}</p>
             </div>
 
             <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2">Created By</label>
-                <p class="text-gray-900">{{ $stockIn->user->name }}</p>
+                <label class="block text-gray-700 text-sm font-bold mb-2">Total Price</label>
+                <p class="text-gray-900 font-bold">Rp {{ number_format($stockIn->total_price, 0, ',', '.') }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">User</label>
+                <p class="text-gray-900">{{ $stockIn->user->name ?? 'Unknown' }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Notes</label>
+                <p class="text-gray-900">{{ $stockIn->notes ?: '-' }}</p>
             </div>
 
             <div class="mb-4">

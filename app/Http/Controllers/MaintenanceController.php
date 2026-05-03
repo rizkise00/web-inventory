@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Maintenance;
+use App\Models\Item;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MaintenanceController extends Controller
 {
@@ -12,12 +14,13 @@ class MaintenanceController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
         
-        $query = \App\Models\Maintenance::latest();
+        $query = Maintenance::with(['item', 'user'])->latest();
 
         if ($search) {
             $query->where(function($q) use ($search) {
-                $q->where('item_name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                $q->whereHas('item', function($iq) use ($search) {
+                    $iq->where('name', 'like', "%{$search}%");
+                })->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -31,53 +34,148 @@ class MaintenanceController extends Controller
 
     public function create()
     {
-        return view('maintenances.create');
+        $items = Item::all();
+        return view('maintenances.create', compact('items'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'item_name' => 'required|string|max:255',
+            'item_id' => 'required|exists:items,id',
+            'quantity' => 'required|integer|min:1',
             'description' => 'nullable|string',
             'date' => 'required|date',
-            'status' => 'required|string',
-            
+            'status' => 'required|string|in:Pending,In Progress,Completed',
         ]);
 
-        Maintenance::create($request->all());
+        $item = Item::findOrFail($request->item_id);
+        
+        if ($item->stock < $request->quantity) {
+            return back()->withErrors(['quantity' => "Insufficient stock. Available: {$item->stock}"])->withInput();
+        }
 
-        return redirect()->route('maintenances.index')->with('success', 'Data Maintenance berhasil ditambahkan.');
+        DB::transaction(function() use ($request, $item) {
+            $maintenance = Maintenance::create([
+                'item_id' => $request->item_id,
+                'quantity' => $request->quantity,
+                'description' => $request->description,
+                'date' => $request->date,
+                'status' => $request->status,
+                'user_id' => auth()->id(),
+            ]);
+
+            // Always deduct stock when maintenance is created (it's "in maintenance")
+            // BUT if it's already "Completed" on creation (rare but possible), 
+            // the stock logic says "if completed, it returns to stock".
+            // So if status is NOT Completed, we deduct.
+            if ($maintenance->status !== 'Completed') {
+                $item->decrement('stock', $request->quantity);
+            }
+        });
+
+        return redirect()->route('maintenances.index')->with('status', 'Maintenance record created successfully.');
     }
 
     public function show(Maintenance $maintenance)
     {
+        $maintenance->load(['item', 'user']);
         return view('maintenances.show', compact('maintenance'));
     }
 
     public function edit(Maintenance $maintenance)
     {
-        return view('maintenances.edit', compact('maintenance'));
+        $items = Item::all();
+        return view('maintenances.edit', compact('maintenance', 'items'));
     }
 
     public function update(Request $request, Maintenance $maintenance)
     {
         $request->validate([
-            'item_name' => 'required|string|max:255',
+            'item_id' => 'required|exists:items,id',
+            'quantity' => 'required|integer|min:1',
             'description' => 'nullable|string',
             'date' => 'required|date',
-            'status' => 'required|string',
-            
+            'status' => 'required|string|in:Pending,In Progress,Completed',
         ]);
 
-        $maintenance->update($request->all());
+        try {
+            DB::transaction(function() use ($request, $maintenance) {
+                $oldItemId = $maintenance->item_id;
+                $newItemId = $request->item_id;
+                $oldStatus = $maintenance->status;
+                $newStatus = $request->status;
+                $oldQty = $maintenance->quantity;
+                $newQty = $request->quantity;
 
-        return redirect()->route('maintenances.index')->with('success', 'Data Maintenance berhasil diperbarui.');
+                if ($oldItemId != $newItemId) {
+                    // 1. Item Changed
+                    // Restore stock to old item if it was in maintenance
+                    if ($oldStatus !== 'Completed') {
+                        $oldItem = Item::find($oldItemId);
+                        if ($oldItem) {
+                            $oldItem->increment('stock', $oldQty);
+                        }
+                    }
+
+                    // Deduct stock from new item if it is going into maintenance
+                    if ($newStatus !== 'Completed') {
+                        $newItem = Item::findOrFail($newItemId);
+                        if ($newItem->stock < $newQty) {
+                            throw new \Exception("Insufficient stock on the new product. Available: {$newItem->stock}");
+                        }
+                        $newItem->decrement('stock', $newQty);
+                    }
+                } else {
+                    // 2. Same Item
+                    $item = Item::findOrFail($newItemId);
+
+                    if ($oldStatus !== 'Completed' && $newStatus === 'Completed') {
+                        // Status changed to Completed: return stock
+                        $item->increment('stock', $oldQty);
+                    } 
+                    elseif ($oldStatus === 'Completed' && $newStatus !== 'Completed') {
+                        // Status changed from Completed: deduct stock
+                        if ($item->stock < $newQty) {
+                            throw new \Exception("Insufficient stock to move back to maintenance. Available: {$item->stock}");
+                        }
+                        $item->decrement('stock', $newQty);
+                    }
+                    elseif ($oldStatus !== 'Completed' && $newStatus !== 'Completed') {
+                        // Status remained NOT Completed: adjust based on quantity change
+                        if ($oldQty !== $newQty) {
+                            $diff = $newQty - $oldQty;
+                            if ($diff > 0) {
+                                if ($item->stock < $diff) {
+                                    throw new \Exception("Insufficient stock to increase maintenance quantity. Available: {$item->stock}");
+                                }
+                                $item->decrement('stock', $diff);
+                            } else {
+                                $item->increment('stock', abs($diff));
+                            }
+                        }
+                    }
+                    // If both are Completed, no stock change needed even if Qty changed
+                }
+
+                $maintenance->update($request->all());
+            });
+
+            return redirect()->route('maintenances.index')->with('status', 'Maintenance record updated successfully.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['quantity' => $e->getMessage()])->withInput();
+        }
     }
 
     public function destroy(Maintenance $maintenance)
     {
-        $maintenance->delete();
+        DB::transaction(function() use ($maintenance) {
+            // If deleting a record that is NOT completed, return the stock
+            if ($maintenance->status !== 'Completed') {
+                $maintenance->item->increment('stock', $maintenance->quantity);
+            }
+            $maintenance->delete();
+        });
 
-        return redirect()->route('maintenances.index')->with('success', 'Data Maintenance berhasil dihapus.');
+        return redirect()->route('maintenances.index')->with('status', 'Maintenance record deleted successfully.');
     }
 }

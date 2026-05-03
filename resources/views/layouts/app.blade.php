@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Web Inventory')</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen">
@@ -36,15 +37,54 @@
                         Users
                     </a>
                     @endif
-                    <a href="{{ route('items.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('items.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
-                        Items
-                    </a>
-                    <a href="{{ route('stock-in.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('stock-in.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
-                        Stock In
-                    </a>
-                    <a href="{{ route('stock-out.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('stock-out.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
-                        Stock Out
-                    </a>
+                    
+                    <!-- Items Dropdown -->
+                    <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <button type="button" 
+                            class="flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                            :class="open || {{ request()->routeIs(['items.*', 'categories.*', 'stock-in.*', 'stock-out.*']) ? 'true' : 'false' }} ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'">
+                            <span>Items</span>
+                            <svg class="ml-1 w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute left-0 mt-0 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2"
+                            style="display: none;">
+                            <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('categories.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                                    Category
+                                </div>
+                            </a>
+                            <a href="{{ route('items.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('items.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                    Product
+                                </div>
+                            </a>
+                            <div class="border-t border-gray-100 my-1"></div>
+                            <a href="{{ route('stock-in.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('stock-in.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    Stock In
+                                </div>
+                            </a>
+                            <a href="{{ route('stock-out.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('stock-out.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                    Stock Out
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
                     <a href="{{ route('maintenances.index') }}" class="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 {{ request()->routeIs('maintenances.*') ? 'text-blue-600' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' }}">
                         Maintenance
                     </a>

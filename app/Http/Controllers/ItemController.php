@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -12,7 +13,7 @@ class ItemController extends Controller
         $search = $request->input('search');
         $low_stock = $request->input('low_stock');
         
-        $query = \App\Models\Item::latest();
+        $query = \App\Models\Item::with('category')->latest();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -28,47 +29,54 @@ class ItemController extends Controller
 
     public function create()
     {
-        return view('items.create');
+        $categories = Category::all();
+        return view('items.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
         Item::create($request->all());
 
-        return redirect()->route('items.index')->with('success', 'Items berhasil ditambahkan.');
+        return redirect()->route('items.index')->with('success', 'Product created successfully.');
     }
 
     public function show(Item $item)
     {
+        $item->load('category');
         return view('items.show', compact('item'));
     }
 
     public function edit(Item $item)
     {
-        return view('items.edit', compact('item'));
+        $categories = Category::all();
+        return view('items.edit', compact('item', 'categories'));
     }
 
     public function update(Request $request, Item $item)
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'category_id' => 'required|exists:categories,id',
+            'price' => 'required|numeric|min:0',
             'description' => 'nullable|string',
         ]);
 
         $item->update($request->all());
 
-        return redirect()->route('items.index')->with('success', 'Items berhasil diperbarui.');
+        return redirect()->route('items.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Item $item)
     {
         $item->delete();
 
-        return redirect()->route('items.index')->with('success', 'Items berhasil dihapus.');
+        return redirect()->route('items.index')->with('success', 'Product deleted successfully.');
     }
 }

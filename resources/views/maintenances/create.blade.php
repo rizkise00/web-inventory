@@ -11,37 +11,71 @@
         </div>
 
         <div class="bg-white shadow-md rounded-lg p-6">
-            
-
-            <form method="POST" action="{{ isset($maintenance) ? route('maintenances.update', $maintenance) : route('maintenances.store') }}">
+            <form method="POST" action="{{ route('maintenances.store') }}">
                 @csrf
-                @if(isset($maintenance)) @method('PUT') @endif
-                <?php $model = $maintenance ?? null; ?>
                 
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Item Name</label>
-                    <input type="text" name="item_name" value="{{ old('item_name', $model->item_name ?? '') }}" required class="w-full px-3 py-2 border rounded-md">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Date</label>
-                    <input type="date" name="date" value="{{ old('date', isset($model) ? $model->date->format('Y-m-d') : date('Y-m-d')) }}" required class="w-full px-3 py-2 border rounded-md">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
-                    <select name="status" class="w-full px-3 py-2 border rounded-md">
-                        <option value="Pending" {{ (old('status', $model->status ?? '') == 'Pending') ? 'selected' : '' }}>Pending</option>
-                        <option value="In Progress" {{ (old('status', $model->status ?? '') == 'In Progress') ? 'selected' : '' }}>In Progress</option>
-                        <option value="Completed" {{ (old('status', $model->status ?? '') == 'Completed') ? 'selected' : '' }}>Completed</option>
+                    <label for="item_id" class="block text-gray-700 text-sm font-bold mb-2">Product</label>
+                    <select name="item_id" id="item_id" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('item_id') border-red-500 @enderror">
+                        <option value="">Select Product</option>
+                        @foreach($items as $item)
+                            <option value="{{ $item->id }}" {{ old('item_id') == $item->id ? 'selected' : '' }}>
+                                {{ $item->name }} (Stock: {{ $item->stock }})
+                            </option>
+                        @endforeach
                     </select>
+                    @error('item_id')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="quantity" class="block text-gray-700 text-sm font-bold mb-2">Quantity</label>
+                    <input type="number" name="quantity" id="quantity" value="{{ old('quantity', 1) }}" required min="1"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('quantity') border-red-500 @enderror"
+                        placeholder="0">
+                    @error('quantity')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="date" class="block text-gray-700 text-sm font-bold mb-2">Date</label>
+                    <input type="date" name="date" id="date" value="{{ old('date', date('Y-m-d')) }}" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('date') border-red-500 @enderror">
+                    @error('date')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-4">
+                    <label for="status" class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+                    <select name="status" id="status" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('status') border-red-500 @enderror">
+                        <option value="Pending" {{ old('status') == 'Pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="In Progress" {{ old('status') == 'In Progress' ? 'selected' : '' }}>In Progress</option>
+                        <option value="Completed" {{ old('status') == 'Completed' ? 'selected' : '' }}>Completed</option>
+                    </select>
+                    @error('status')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-                    <textarea name="description" class="w-full px-3 py-2 border rounded-md">{{ old('description', $model->description ?? '') }}</textarea>
+                <div class="mb-6">
+                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+                    <textarea name="description" id="description" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('description') border-red-500 @enderror"
+                        placeholder="Maintenance details...">{{ old('description') }}</textarea>
+                    @error('description')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
                 
                 <div class="flex items-center justify-end">
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Create Maintenance</button>
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Create Maintenance
+                    </button>
                 </div>
             </form>
         </div>

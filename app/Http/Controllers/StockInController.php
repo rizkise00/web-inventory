@@ -45,9 +45,15 @@ class StockInController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $item = Item::findOrFail($request->item_id);
+        $unitPrice = $item->price;
+        $totalPrice = $unitPrice * $request->quantity;
+
         StockIn::create([
             'item_id' => $request->item_id,
             'quantity' => $request->quantity,
+            'unit_price' => $unitPrice,
+            'total_price' => $totalPrice,
             'notes' => $request->notes,
             'user_id' => auth()->id(),
         ]);
@@ -76,9 +82,15 @@ class StockInController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $item = Item::findOrFail($request->item_id);
+        $unitPrice = $item->price;
+        $totalPrice = $unitPrice * $request->quantity;
+
         $stockIn->update([
             'item_id' => $request->item_id,
             'quantity' => $request->quantity,
+            'unit_price' => $unitPrice,
+            'total_price' => $totalPrice,
             'notes' => $request->notes,
         ]);
 

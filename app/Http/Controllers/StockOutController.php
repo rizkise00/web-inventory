@@ -12,6 +12,7 @@ class StockOutController extends Controller
     {
         $item_name = $request->input('item_name');
         $user_name = $request->input('user_name');
+        $status = $request->input('status');
         
         $query = \App\Models\StockOut::with(['user', 'item'])->latest();
 
@@ -25,6 +26,10 @@ class StockOutController extends Controller
             $query->whereHas('user', function($q) use ($user_name) {
                 $q->where('name', 'like', "%$user_name%");
             });
+        }
+
+        if ($status) {
+            $query->where('status', $status);
         }
 
         $stockOuts = $query->paginate(10)->withQueryString();
@@ -52,12 +57,20 @@ class StockOutController extends Controller
                     }
                 }
             ],
+            'status' => ['required', 'string', 'in:Consumed,Damaged'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $item = Item::findOrFail($request->item_id);
+        $unitPrice = $item->price;
+        $totalPrice = $unitPrice * $request->quantity;
 
         StockOut::create([
             'item_id' => $request->item_id,
             'quantity' => $request->quantity,
+            'status' => $request->status,
+            'unit_price' => $unitPrice,
+            'total_price' => $totalPrice,
             'notes' => $request->notes,
             'user_id' => auth()->id(),
         ]);
@@ -100,12 +113,20 @@ class StockOutController extends Controller
                     }
                 }
             ],
+            'status' => ['required', 'string', 'in:Consumed,Damaged'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $item = Item::findOrFail($request->item_id);
+        $unitPrice = $item->price;
+        $totalPrice = $unitPrice * $request->quantity;
 
         $stockOut->update([
             'item_id' => $request->item_id,
             'quantity' => $request->quantity,
+            'status' => $request->status,
+            'unit_price' => $unitPrice,
+            'total_price' => $totalPrice,
             'notes' => $request->notes,
         ]);
 

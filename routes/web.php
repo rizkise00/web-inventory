@@ -8,6 +8,7 @@ use App\Http\Controllers\StockOutController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 // Auth routes
@@ -23,6 +24,7 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::resource('stock-in', StockInController::class);
     Route::resource('stock-out', StockOutController::class);
     Route::resource('items', ItemController::class);
+    Route::resource('categories', CategoryController::class);
     Route::resource('maintenances', MaintenanceController::class);
 });
 
