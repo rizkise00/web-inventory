@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Exports\UserExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -124,6 +126,10 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
         if ($user->id === auth()->id()) {
             return redirect()->route('users.index')
                 ->with('error', 'You cannot delete your own account.');
@@ -145,9 +151,26 @@ class UserController extends Controller
 
     public function reject(User $user)
     {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
         $user->delete();
 
         return redirect()->route('users.index')
             ->with('status', 'User has been rejected and removed.');
+    }
+
+    public function export(Request $request)
+    {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        $search = $request->input('search');
+        $role = $request->input('role');
+        $status = $request->input('status');
+
+        return Excel::download(new UserExport($search, $role, $status), 'users.xlsx');
     }
 }

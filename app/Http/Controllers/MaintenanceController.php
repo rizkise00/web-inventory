@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Maintenance;
 use App\Models\Item;
+use App\Exports\MaintenanceExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MaintenanceController extends Controller
 {
@@ -48,15 +51,17 @@ class MaintenanceController extends Controller
             'status' => 'required|string|in:Pending,In Progress,Completed',
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        
-        if ($item->stock < $request->quantity) {
-            return back()->withErrors(['quantity' => "Insufficient stock. Available: {$item->stock}"])->withInput();
-        }
+        DB::transaction(function () use ($request) {
+            $item = Item::lockForUpdate()->findOrFail($request->item_id);
 
-        DB::transaction(function() use ($request, $item) {
+            if ($item->stock < $request->quantity) {
+                throw ValidationException::withMessages([
+                    'quantity' => ["Insufficient stock. Available: {$item->stock}"],
+                ]);
+            }
+
             $maintenance = Maintenance::create([
-                'item_id' => $request->item_id,
+                'item_id' => $item->id,
                 'quantity' => $request->quantity,
                 'description' => $request->description,
                 'date' => $request->date,
@@ -64,10 +69,6 @@ class MaintenanceController extends Controller
                 'user_id' => auth()->id(),
             ]);
 
-            // Always deduct stock when maintenance is created (it's "in maintenance")
-            // BUT if it's already "Completed" on creation (rare but possible), 
-            // the stock logic says "if completed, it returns to stock".
-            // So if status is NOT Completed, we deduct.
             if ($maintenance->status !== 'Completed') {
                 $item->decrement('stock', $request->quantity);
             }
@@ -111,7 +112,7 @@ class MaintenanceController extends Controller
                     // 1. Item Changed
                     // Restore stock to old item if it was in maintenance
                     if ($oldStatus !== 'Completed') {
-                        $oldItem = Item::find($oldItemId);
+                        $oldItem = Item::lockForUpdate()->find($oldItemId);
                         if ($oldItem) {
                             $oldItem->increment('stock', $oldQty);
                         }
@@ -119,7 +120,7 @@ class MaintenanceController extends Controller
 
                     // Deduct stock from new item if it is going into maintenance
                     if ($newStatus !== 'Completed') {
-                        $newItem = Item::findOrFail($newItemId);
+                        $newItem = Item::lockForUpdate()->findOrFail($newItemId);
                         if ($newItem->stock < $newQty) {
                             throw new \Exception("Insufficient stock on the new product. Available: {$newItem->stock}");
                         }
@@ -127,7 +128,7 @@ class MaintenanceController extends Controller
                     }
                 } else {
                     // 2. Same Item
-                    $item = Item::findOrFail($newItemId);
+                    $item = Item::lockForUpdate()->findOrFail($newItemId);
 
                     if ($oldStatus !== 'Completed' && $newStatus === 'Completed') {
                         // Status changed to Completed: return stock
@@ -157,7 +158,9 @@ class MaintenanceController extends Controller
                     // If both are Completed, no stock change needed even if Qty changed
                 }
 
-                $maintenance->update($request->all());
+                $maintenance->update($request->only([
+                    'item_id', 'quantity', 'description', 'date', 'status',
+                ]));
             });
 
             return redirect()->route('maintenances.index')->with('status', 'Maintenance record updated successfully.');
@@ -169,13 +172,24 @@ class MaintenanceController extends Controller
     public function destroy(Maintenance $maintenance)
     {
         DB::transaction(function() use ($maintenance) {
-            // If deleting a record that is NOT completed, return the stock
-            if ($maintenance->status !== 'Completed') {
+            if ($maintenance->status !== 'Completed' && $maintenance->item) {
                 $maintenance->item->increment('stock', $maintenance->quantity);
             }
             $maintenance->delete();
         });
 
         return redirect()->route('maintenances.index')->with('status', 'Maintenance record deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        $search = $request->input('search');
+        $status = $request->input('status');
+
+        return Excel::download(new MaintenanceExport($search, $status), 'maintenances.xlsx');
     }
 }

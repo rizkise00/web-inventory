@@ -84,6 +84,7 @@
                 </div>
             </div>
 
+            @if(auth()->user()->isManager())
             <!-- Items Card -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-blue-100">
                 <div class="flex items-center justify-between">
@@ -106,6 +107,7 @@
                     </a>
                 </div>
             </div>
+            @endif
 
             <!-- Maintenance Card -->
             <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-orange-100">

@@ -19,6 +19,26 @@
             </a>
         </div>
 
+        <!-- Search and Actions -->
+        <div class="mb-6">
+            <form action="{{ route('categories.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 w-full">
+                <div class="relative flex-1">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Category Name..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+                @if(auth()->user()->isManager())
+                <a href="{{ route('categories.export', request()->only(['search'])) }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center whitespace-nowrap">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Export
+                </a>
+                @endif
+            </form>
+        </div>
+
         <!-- Table Card -->
         <div class="bg-white rounded-lg overflow-x-auto border border-green-100 shadow-sm">
             <table class="min-w-full divide-y divide-gray-200">
@@ -48,6 +68,11 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6">
+            {{ $categories->links() }}
         </div>
     </div>
 </div>

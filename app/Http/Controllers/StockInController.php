@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\StockIn;
 use App\Models\Item;
+use App\Exports\StockInExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StockInController extends Controller
 {
@@ -45,18 +48,18 @@ class StockInController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        $unitPrice = $item->price;
-        $totalPrice = $unitPrice * $request->quantity;
+        DB::transaction(function () use ($request) {
+            $item = Item::lockForUpdate()->findOrFail($request->item_id);
 
-        StockIn::create([
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'unit_price' => $unitPrice,
-            'total_price' => $totalPrice,
-            'notes' => $request->notes,
-            'user_id' => auth()->id(),
-        ]);
+            StockIn::create([
+                'item_id' => $item->id,
+                'quantity' => $request->quantity,
+                'unit_price' => $item->price,
+                'total_price' => $item->price * $request->quantity,
+                'notes' => $request->notes,
+                'user_id' => auth()->id(),
+            ]);
+        });
 
         return redirect()->route('stock-in.index')
             ->with('status', 'Stock in record created successfully.');
@@ -82,17 +85,17 @@ class StockInController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        $unitPrice = $item->price;
-        $totalPrice = $unitPrice * $request->quantity;
+        DB::transaction(function () use ($request, $stockIn) {
+            $item = Item::lockForUpdate()->findOrFail($request->item_id);
 
-        $stockIn->update([
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'unit_price' => $unitPrice,
-            'total_price' => $totalPrice,
-            'notes' => $request->notes,
-        ]);
+            $stockIn->update([
+                'item_id' => $item->id,
+                'quantity' => $request->quantity,
+                'unit_price' => $item->price,
+                'total_price' => $item->price * $request->quantity,
+                'notes' => $request->notes,
+            ]);
+        });
 
         return redirect()->route('stock-in.index')
             ->with('status', 'Stock in record updated successfully.');
@@ -104,5 +107,17 @@ class StockInController extends Controller
 
         return redirect()->route('stock-in.index')
             ->with('status', 'Stock in record deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        return Excel::download(
+            new StockInExport($request->input('item_name'), $request->input('user_name')),
+            'stock-in.xlsx'
+        );
     }
 }

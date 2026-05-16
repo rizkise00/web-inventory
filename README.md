@@ -25,6 +25,12 @@ A modern, comprehensive web-based inventory management system built with Laravel
   - Multi-role system (**Admin** and **Manager**).
   - Manager-exclusive approval workflow for new user registrations.
   - Role-based navigation and action permissions.
+  - Manager-only export for Users, Items, Categories, Stock Out, and Maintenance data.
+
+- **Data Export**
+  - All modules support one-click `.xlsx` export (Excel).
+  - Export supports search/filter parameters (e.g., export only filtered items or stock records).
+  - Access restricted: only Managers can export sensitive reports.
 
 - **Modern UI/UX**
   - **Responsive Design**: Built with Tailwind CSS, featuring mobile-friendly navigation and scrollable data tables.
@@ -92,6 +98,55 @@ Run Vite for hot-reloading:
 ```bash
 npm run dev
 ```
+
+## Testing
+
+The project includes a comprehensive PHPUnit test suite covering all major features. Tests use an in-memory SQLite database and run in full isolation via `RefreshDatabase`.
+
+**Run all tests:**
+```bash
+php artisan test
+```
+
+**Run a specific test file:**
+```bash
+php artisan test tests/Feature/ItemControllerTest.php
+```
+
+### Test Coverage
+
+| Module | Tests | Assertions |
+|---|---|---|
+| Auth / Dashboard | 5 | ~10 |
+| Category | 8 | ~14 |
+| Item | 11 | ~17 |
+| Stock In | 13 | ~22 |
+| Stock Out | 14 | ~28 |
+| Maintenance | 14 | ~26 |
+| User Management | 17 | ~30 |
+| **Total** | **83** | **177** |
+
+### What is tested
+
+- Guest redirect to login for all protected routes
+- Role-based access: Admin vs. Manager permissions
+- Unapproved user access restriction
+- CRUD operations for all modules
+- Stock increment/decrement accuracy on Stock In, Stock Out, and Maintenance
+- Insufficient stock validation (cannot over-allocate)
+- Stock reconciliation on record update and delete
+- Category deletion blocked when items exist
+- Manager self-delete prevention
+- Excel export availability (Managers only) and access denial (non-Managers)
+- Export filter parameters (search, status)
+- Input validation for all forms
+
+## Security
+
+- **Authorization**: All sensitive routes protected by `auth`, `approved`, and `manager` middleware. Controllers perform secondary role checks where needed.
+- **Mass Assignment Protection**: All controllers use `$request->only([...])` to whitelist fillable fields explicitly, preventing mass-assignment attacks.
+- **Race Condition Safety**: Stock mutations are wrapped in `DB::transaction()` with `lockForUpdate()` to prevent concurrent over-allocation.
+- **Stock Integrity**: Validation against current stock happens inside the database transaction to ensure accuracy under concurrent load.
 
 ## Features Roadmap
 - [x] Excel Exporting

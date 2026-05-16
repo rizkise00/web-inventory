@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\StockOut;
 use App\Models\Item;
+use App\Exports\StockOutExport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StockOutController extends Controller
 {
@@ -46,34 +50,30 @@ class StockOutController extends Controller
     {
         $request->validate([
             'item_id' => ['required', 'exists:items,id'],
-            'quantity' => [
-                'required', 
-                'integer', 
-                'min:1',
-                function ($attribute, $value, $fail) use ($request) {
-                    $item = Item::find($request->item_id);
-                    if ($item && $value > $item->stock) {
-                        $fail("The quantity exceeds the available stock ({$item->stock}).");
-                    }
-                }
-            ],
+            'quantity' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'string', 'in:Consumed,Damaged'],
             'notes' => ['nullable', 'string'],
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        $unitPrice = $item->price;
-        $totalPrice = $unitPrice * $request->quantity;
+        DB::transaction(function () use ($request) {
+            $item = Item::lockForUpdate()->findOrFail($request->item_id);
 
-        StockOut::create([
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'status' => $request->status,
-            'unit_price' => $unitPrice,
-            'total_price' => $totalPrice,
-            'notes' => $request->notes,
-            'user_id' => auth()->id(),
-        ]);
+            if ($request->quantity > $item->stock) {
+                throw ValidationException::withMessages([
+                    'quantity' => ["The quantity exceeds the available stock ({$item->stock})."],
+                ]);
+            }
+
+            StockOut::create([
+                'item_id' => $item->id,
+                'quantity' => $request->quantity,
+                'status' => $request->status,
+                'unit_price' => $item->price,
+                'total_price' => $item->price * $request->quantity,
+                'notes' => $request->notes,
+                'user_id' => auth()->id(),
+            ]);
+        });
 
         return redirect()->route('stock-out.index')
             ->with('status', 'Stock out record created successfully.');
@@ -95,40 +95,33 @@ class StockOutController extends Controller
     {
         $request->validate([
             'item_id' => ['required', 'exists:items,id'],
-            'quantity' => [
-                'required', 
-                'integer', 
-                'min:1',
-                function ($attribute, $value, $fail) use ($request, $stockOut) {
-                    $item = Item::find($request->item_id);
-                    if ($item) {
-                        // Calculate available stock including what was already deducted by this record
-                        $available = $item->id == $stockOut->item_id 
-                            ? $item->stock + $stockOut->quantity 
-                            : $item->stock;
-                        
-                        if ($value > $available) {
-                            $fail("The quantity exceeds the available stock ({$available}).");
-                        }
-                    }
-                }
-            ],
+            'quantity' => ['required', 'integer', 'min:1'],
             'status' => ['required', 'string', 'in:Consumed,Damaged'],
             'notes' => ['nullable', 'string'],
         ]);
 
-        $item = Item::findOrFail($request->item_id);
-        $unitPrice = $item->price;
-        $totalPrice = $unitPrice * $request->quantity;
+        DB::transaction(function () use ($request, $stockOut) {
+            $item = Item::lockForUpdate()->findOrFail($request->item_id);
 
-        $stockOut->update([
-            'item_id' => $request->item_id,
-            'quantity' => $request->quantity,
-            'status' => $request->status,
-            'unit_price' => $unitPrice,
-            'total_price' => $totalPrice,
-            'notes' => $request->notes,
-        ]);
+            $available = $item->id == $stockOut->item_id
+                ? $item->stock + $stockOut->quantity
+                : $item->stock;
+
+            if ($request->quantity > $available) {
+                throw ValidationException::withMessages([
+                    'quantity' => ["The quantity exceeds the available stock ({$available})."],
+                ]);
+            }
+
+            $stockOut->update([
+                'item_id' => $item->id,
+                'quantity' => $request->quantity,
+                'status' => $request->status,
+                'unit_price' => $item->price,
+                'total_price' => $item->price * $request->quantity,
+                'notes' => $request->notes,
+            ]);
+        });
 
         return redirect()->route('stock-out.index')
             ->with('status', 'Stock out record updated successfully.');
@@ -140,5 +133,21 @@ class StockOutController extends Controller
 
         return redirect()->route('stock-out.index')
             ->with('status', 'Stock out record deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        return Excel::download(
+            new StockOutExport(
+                $request->input('item_name'),
+                $request->input('user_name'),
+                $request->input('status')
+            ),
+            'stock-out.xlsx'
+        );
     }
 }

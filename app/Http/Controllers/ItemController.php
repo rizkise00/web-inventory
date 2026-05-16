@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\Category;
+use App\Exports\ItemExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ItemController extends Controller
 {
@@ -42,7 +44,7 @@ class ItemController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Item::create($request->all());
+        Item::create($request->only(['name', 'category_id', 'price', 'description']));
 
         return redirect()->route('items.index')->with('success', 'Product created successfully.');
     }
@@ -68,7 +70,7 @@ class ItemController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $item->update($request->all());
+        $item->update($request->only(['name', 'category_id', 'price', 'description']));
 
         return redirect()->route('items.index')->with('success', 'Product updated successfully.');
     }
@@ -78,5 +80,17 @@ class ItemController extends Controller
         $item->delete();
 
         return redirect()->route('items.index')->with('success', 'Product deleted successfully.');
+    }
+
+    public function export(Request $request)
+    {
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
+        }
+
+        $search = $request->input('search');
+        $low_stock = $request->input('low_stock');
+
+        return Excel::download(new ItemExport($search, $low_stock), 'products.xlsx');
     }
 }
