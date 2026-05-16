@@ -35,17 +35,29 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('stock_ins', function (Blueprint $table) {
-            $table->dropForeign(['item_id']);
-            $table->dropColumn('item_id');
-            $table->string('item_name');
-            $table->date('date');
+            if (Schema::hasColumn('stock_ins', 'item_id')) {
+                $table->dropForeign(['item_id']);
+                $table->dropColumn('item_id');
+            }
+            if (!Schema::hasColumn('stock_ins', 'item_name')) {
+                $table->string('item_name')->nullable();
+            }
+            if (!Schema::hasColumn('stock_ins', 'date')) {
+                $table->date('date')->nullable();
+            }
         });
 
         Schema::table('stock_outs', function (Blueprint $table) {
-            $table->dropForeign(['item_id']);
-            $table->dropColumn('item_id');
-            $table->string('item_name');
-            $table->date('date');
+            if (Schema::hasColumn('stock_outs', 'item_id')) {
+                $table->dropForeign(['item_id']);
+                $table->dropColumn('item_id');
+            }
+            if (!Schema::hasColumn('stock_outs', 'item_name')) {
+                $table->string('item_name')->nullable();
+            }
+            if (!Schema::hasColumn('stock_outs', 'date')) {
+                $table->date('date')->nullable();
+            }
         });
     }
 };

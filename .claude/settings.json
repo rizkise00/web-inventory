@@ -4,7 +4,20 @@
       "Bash(php artisan *)",
       "Bash(composer update *)",
       "Bash(composer dump-autoload *)",
-      "PowerShell(Get-ChildItem -Path \"C:\\\\Project\\\\test\\\\web-inventory\" -Recurse -Directory | Select-Object -First 30 | ForEach-Object { $_.FullName })"
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Project\\\\test\\\\web-inventory\" -Recurse -Directory | Select-Object -First 30 | ForEach-Object { $_.FullName })",
+      "Bash(findstr \"3306\")",
+      "PowerShell(Get-Process -Name \"mysqld\" -ErrorAction SilentlyContinue)",
+      "PowerShell(Test-NetConnection -ComputerName 127.0.0.1 -Port 3306 -InformationLevel Quiet -WarningAction SilentlyContinue)",
+      "Read(//c/laragon/bin/mysql/**)",
+      "Read(//c/laragon/**)",
+      "PowerShell(Get-ChildItem \"C:\\\\\" -MaxDepth 2 -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"laragon|wamp|xampp|mysql\" } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"C:\\\\\" -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"laragon|wamp|xampp|mysql|herd\" } | Select-Object FullName)",
+      "PowerShell(php -r \"echo php_ini_loaded_file\\(\\) . PHP_EOL . ini_get\\('include_path'\\);\" 2>&1)",
+      "Bash(\"/c/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysqld.exe\" --defaults-file=\"C:/laragon/bin/mysql/mysql-8.4.3-winx64/my.ini\" --standalone)",
+      "Bash(\"/c/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe\" -u root -e \"SELECT 1;\")",
+      "Bash(\"/c/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe\" -u root -e \"CREATE DATABASE IF NOT EXISTS web_inventory CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(\"/c/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe\" -u root -e \"DROP DATABASE IF EXISTS web_inventory; CREATE DATABASE web_inventory CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\")",
+      "Bash(\"/c/laragon/bin/mysql/mysql-8.4.3-winx64/bin/mysql.exe\" -u root web_inventory -e \"SELECT COUNT\\(*\\) as users FROM users; SELECT COUNT\\(*\\) as items FROM items; SELECT COUNT\\(*\\) as categories FROM categories;\")"
     ]
   }
 }

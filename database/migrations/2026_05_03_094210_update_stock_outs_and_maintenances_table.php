@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -31,13 +32,22 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('stock_outs', function (Blueprint $table) {
-            $table->dropColumn('status');
+            if (Schema::hasColumn('stock_outs', 'status')) {
+                $table->dropColumn('status');
+            }
         });
 
         Schema::table('maintenances', function (Blueprint $table) {
-            $table->dropForeign(['item_id']);
-            $table->dropColumn(['item_id', 'quantity']);
-            $table->string('item_name')->after('id');
+            if (Schema::hasColumn('maintenances', 'item_id')) {
+                $table->dropForeign(['item_id']);
+                $table->dropColumn('item_id');
+            }
+            if (Schema::hasColumn('maintenances', 'quantity')) {
+                $table->dropColumn('quantity');
+            }
+            if (!Schema::hasColumn('maintenances', 'item_name')) {
+                $table->string('item_name')->nullable()->after('id');
+            }
         });
     }
 };
