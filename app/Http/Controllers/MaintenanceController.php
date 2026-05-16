@@ -8,7 +8,6 @@ use App\Exports\MaintenanceExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
 
 class MaintenanceController extends Controller
 {
@@ -190,6 +189,6 @@ class MaintenanceController extends Controller
         $search = $request->input('search');
         $status = $request->input('status');
 
-        return Excel::download(new MaintenanceExport($search, $status), 'maintenances.xlsx');
+        return (new MaintenanceExport($search, $status))->download('maintenances.xlsx');
     }
 }

@@ -20,7 +20,9 @@ class StockOut extends Model
     ];
 
     protected $casts = [
-        'quantity' => 'integer',
+        'quantity'    => 'integer',
+        'unit_price'  => 'decimal:2',
+        'total_price' => 'decimal:2',
     ];
 
     protected static function booted()

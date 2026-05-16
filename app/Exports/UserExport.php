@@ -3,11 +3,8 @@
 namespace App\Exports;
 
 use App\Models\User;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class UserExport implements FromQuery, WithHeadings, WithMapping
+class UserExport extends ExcelExport
 {
     protected $search;
     protected $role;
@@ -22,12 +19,14 @@ class UserExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        return User::when($this->search, function($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")
-                         ->orWhere('email', 'like', "%{$search}%");
-        })->when($this->role, function($query, $role) {
+        return User::when($this->search, function ($query, $search) {
+            return $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        })->when($this->role, function ($query, $role) {
             return $query->where('role', $role);
-        })->when($this->status, function($query, $status) {
+        })->when($this->status, function ($query, $status) {
             return $query->where('is_approved', $status === 'approved' ? 1 : 0);
         });
     }

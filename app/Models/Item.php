@@ -16,6 +16,11 @@ class Item extends Model
         'description',
     ];
 
+    protected $casts = [
+        'price' => 'decimal:2',
+        'stock' => 'integer',
+    ];
+
     public function category()
     {
         return $this->belongsTo(Category::class);
@@ -29,5 +34,10 @@ class Item extends Model
     public function stockOuts()
     {
         return $this->hasMany(StockOut::class);
+    }
+
+    public function maintenances()
+    {
+        return $this->hasMany(Maintenance::class);
     }
 }

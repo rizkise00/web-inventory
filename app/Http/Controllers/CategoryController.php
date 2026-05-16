@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Exports\CategoryExport;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 
 class CategoryController extends Controller
 {
@@ -74,6 +73,6 @@ class CategoryController extends Controller
 
         $search = $request->input('search');
 
-        return Excel::download(new CategoryExport($search), 'categories.xlsx');
+        return (new CategoryExport($search))->download('categories.xlsx');
     }
 }

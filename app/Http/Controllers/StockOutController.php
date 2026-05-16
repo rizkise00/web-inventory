@@ -8,7 +8,6 @@ use App\Exports\StockOutExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
 
 class StockOutController extends Controller
 {
@@ -18,7 +17,7 @@ class StockOutController extends Controller
         $user_name = $request->input('user_name');
         $status = $request->input('status');
         
-        $query = \App\Models\StockOut::with(['user', 'item'])->latest();
+        $query = StockOut::with(['user', 'item'])->latest();
 
         if ($item_name) {
             $query->whereHas('item', function($q) use ($item_name) {
@@ -141,13 +140,10 @@ class StockOutController extends Controller
             return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
         }
 
-        return Excel::download(
-            new StockOutExport(
-                $request->input('item_name'),
-                $request->input('user_name'),
-                $request->input('status')
-            ),
-            'stock-out.xlsx'
-        );
+        return (new StockOutExport(
+            $request->input('item_name'),
+            $request->input('user_name'),
+            $request->input('status')
+        ))->download('stock-out.xlsx');
     }
 }

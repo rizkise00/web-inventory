@@ -20,6 +20,16 @@
             </div>
 
             <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+                <p class="text-gray-900">{{ $item->category->name ?? '-' }}</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">Price</label>
+                <p class="text-gray-900">Rp {{ number_format($item->price, 0, ',', '.') }}</p>
+            </div>
+
+            <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2">Stock</label>
                 <p class="text-gray-900">{{ $item->stock }}</p>
             </div>

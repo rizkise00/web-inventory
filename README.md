@@ -42,14 +42,14 @@ A modern, comprehensive web-based inventory management system built with Laravel
 
 - **Backend**: Laravel 11
 - **Frontend**: Blade Templates, Tailwind CSS, Alpine.js
-- **Excel Support**: Maatwebsite/Laravel-Excel
+- **Excel Support**: phpoffice/phpspreadsheet 2.x (PHP 8.5 compatible)
 - **JavaScript Libraries**: SweetAlert2
 - **Build Tool**: Vite
 - **Database**: MySQL / SQLite
 
 ## Requirements
 
-- PHP >= 8.2
+- PHP >= 8.3 (including PHP 8.5)
 - Composer
 - Node.js >= 18
 - NPM
@@ -143,15 +143,23 @@ php artisan test tests/Feature/ItemControllerTest.php
 
 ## Security
 
-- **Authorization**: All sensitive routes protected by `auth`, `approved`, and `manager` middleware. Controllers perform secondary role checks where needed.
-- **Mass Assignment Protection**: All controllers use `$request->only([...])` to whitelist fillable fields explicitly, preventing mass-assignment attacks.
+- **Authorization**: All sensitive routes protected by `auth`, `approved`, and `manager` middleware. Controllers perform a secondary role check to prevent privilege escalation via direct URL access.
+- **Mass Assignment Protection**: All controllers use `$request->only([...])` to whitelist fillable fields explicitly, preventing mass-assignment attacks (e.g. `stock` cannot be set via item update endpoint).
 - **Race Condition Safety**: Stock mutations are wrapped in `DB::transaction()` with `lockForUpdate()` to prevent concurrent over-allocation.
-- **Stock Integrity**: Validation against current stock happens inside the database transaction to ensure accuracy under concurrent load.
+- **Stock Integrity**: Stock availability is validated inside the database transaction to guarantee correctness under concurrent load.
+- **Financial Data Precision**: Price fields (`price`, `unit_price`, `total_price`) are cast as `decimal:2` in Eloquent models to preserve precision across operations.
+- **Route Order Safety**: Explicit export routes (`/items/export`) are defined before their resource counterparts to prevent Laravel's FIFO route matching from shadowing them with the `/{id}` show route.
+
+## PHP Version Compatibility
+
+This project uses **phpoffice/phpspreadsheet ^2.0** which supports PHP 8.1–8.5+, making it compatible with Laravel Cloud and other modern hosting environments. The older `maatwebsite/excel 3.x` dependency (which was limited to PHP < 8.5) has been replaced.
 
 ## Features Roadmap
-- [x] Excel Exporting
+- [x] Excel Exporting (all modules)
 - [x] Product Categories
 - [x] Maintenance Stock Integration
 - [x] Responsive Data Tables
+- [x] Role-based Access Control
+- [x] PHP 8.5 Compatibility
 - [ ] Low Stock Notifications
 - [ ] Supplier Management

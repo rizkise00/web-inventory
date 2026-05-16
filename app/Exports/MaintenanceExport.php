@@ -3,11 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Maintenance;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class MaintenanceExport implements FromQuery, WithHeadings, WithMapping
+class MaintenanceExport extends ExcelExport
 {
     protected $search;
     protected $status;
@@ -20,13 +17,16 @@ class MaintenanceExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        return Maintenance::when($this->search, function($query, $search) {
-            return $query->whereHas('item', function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
-            })->orWhere('description', 'like', "%{$search}%");
-        })->when($this->status, function($query, $status) {
-            return $query->where('status', $status);
-        });
+        return Maintenance::with(['item', 'user'])
+            ->when($this->search, function ($query, $search) {
+                return $query->where(function ($q) use ($search) {
+                    $q->whereHas('item', function ($qi) use ($search) {
+                        $qi->where('name', 'like', "%{$search}%");
+                    })->orWhere('description', 'like', "%{$search}%");
+                });
+            })->when($this->status, function ($query, $status) {
+                return $query->where('status', $status);
+            });
     }
 
     public function headings(): array

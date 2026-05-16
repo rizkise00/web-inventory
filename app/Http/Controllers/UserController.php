@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
-use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
@@ -143,10 +142,12 @@ class UserController extends Controller
 
     public function approve(User $user)
     {
-        if(auth()->user()->isManager()) {
-            $user->update(['is_approved' => true]);
-            return back()->with('success', 'User approved successfully.');
+        if (!auth()->user()->isManager()) {
+            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
         }
+
+        $user->update(['is_approved' => true]);
+        return back()->with('success', 'User approved successfully.');
     }
 
     public function reject(User $user)
@@ -171,6 +172,6 @@ class UserController extends Controller
         $role = $request->input('role');
         $status = $request->input('status');
 
-        return Excel::download(new UserExport($search, $role, $status), 'users.xlsx');
+        return (new UserExport($search, $role, $status))->download('users.xlsx');
     }
 }

@@ -7,7 +7,6 @@ use App\Models\Item;
 use App\Exports\StockInExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
 
 class StockInController extends Controller
 {
@@ -16,7 +15,7 @@ class StockInController extends Controller
         $item_name = $request->input('item_name');
         $user_name = $request->input('user_name');
         
-        $query = \App\Models\StockIn::with(['user', 'item'])->latest();
+        $query = StockIn::with(['user', 'item'])->latest();
 
         if ($item_name) {
             $query->whereHas('item', function($q) use ($item_name) {
@@ -115,9 +114,6 @@ class StockInController extends Controller
             return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
         }
 
-        return Excel::download(
-            new StockInExport($request->input('item_name'), $request->input('user_name')),
-            'stock-in.xlsx'
-        );
+        return (new StockInExport($request->input('item_name'), $request->input('user_name')))->download('stock-in.xlsx');
     }
 }

@@ -3,11 +3,8 @@
 namespace App\Exports;
 
 use App\Models\StockOut;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class StockOutExport implements FromQuery, WithHeadings, WithMapping
+class StockOutExport extends ExcelExport
 {
     protected $itemName;
     protected $userName;

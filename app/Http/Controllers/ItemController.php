@@ -6,7 +6,6 @@ use App\Models\Item;
 use App\Models\Category;
 use App\Exports\ItemExport;
 use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 
 class ItemController extends Controller
 {
@@ -15,7 +14,7 @@ class ItemController extends Controller
         $search = $request->input('search');
         $low_stock = $request->input('low_stock');
         
-        $query = \App\Models\Item::with('category')->latest();
+        $query = Item::with('category')->latest();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -91,6 +90,6 @@ class ItemController extends Controller
         $search = $request->input('search');
         $low_stock = $request->input('low_stock');
 
-        return Excel::download(new ItemExport($search, $low_stock), 'products.xlsx');
+        return (new ItemExport($search, $low_stock))->download('products.xlsx');
     }
 }

@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan *)"
+      "Bash(php artisan *)",
+      "Bash(composer update *)",
+      "Bash(composer dump-autoload *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Project\\\\test\\\\web-inventory\" -Recurse -Directory | Select-Object -First 30 | ForEach-Object { $_.FullName })"
     ]
   }
 }

@@ -3,11 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Item;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class ItemExport implements FromQuery, WithHeadings, WithMapping
+class ItemExport extends ExcelExport
 {
     protected $search;
     protected $lowStock;
@@ -20,11 +17,12 @@ class ItemExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        return Item::when($this->search, function($query, $search) {
-            return $query->where('name', 'like', "%{$search}%");
-        })->when($this->lowStock, function($query) {
-            return $query->where('stock', '<', 5);
-        });
+        return Item::with('category')
+            ->when($this->search, function ($query, $search) {
+                return $query->where('name', 'like', "%{$search}%");
+            })->when($this->lowStock, function ($query) {
+                return $query->where('stock', '<', 5);
+            });
     }
 
     public function headings(): array

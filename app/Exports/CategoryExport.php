@@ -3,11 +3,8 @@
 namespace App\Exports;
 
 use App\Models\Category;
-use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
 
-class CategoryExport implements FromQuery, WithHeadings, WithMapping
+class CategoryExport extends ExcelExport
 {
     protected $search;
 
@@ -18,7 +15,7 @@ class CategoryExport implements FromQuery, WithHeadings, WithMapping
 
     public function query()
     {
-        return Category::when($this->search, function($query, $search) {
+        return Category::when($this->search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         });
     }
