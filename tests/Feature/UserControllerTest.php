@@ -173,7 +173,7 @@ class UserControllerTest extends TestCase
             ->assertDownload('users.xlsx');
     }
 
-    public function test_non_manager_cannot_access_export_route(): void
+    public function test_non_manager_cannot_access_users_export(): void
     {
         $this->actingAs($this->regular())->get('/users/export')
             ->assertRedirect(route('dashboard'));

@@ -26,12 +26,13 @@ A modern, comprehensive web-based inventory management system built with Laravel
   - Manager-exclusive approval workflow for new user registrations.
   - Role-based navigation and action permissions.
   - Both Admin and Manager have full access to: Products, Categories, Stock In, Stock Out, and Maintenance (CRUD + export).
-  - Manager-only feature: User management (view, create, edit, approve, reject, delete, export).
+  - Manager-only feature: User management (view, create, edit, approve, reject, delete) and Users export.
 
 - **Data Export**
   - All modules support one-click `.xlsx` export (Excel).
   - Export supports search/filter parameters (e.g., export only filtered items or stock records).
-  - User export is restricted to Managers only; all other exports are available to both Admin and Manager.
+  - Items, Categories, Stock In, Stock Out, and Maintenance exports are available to both Admin and Manager.
+  - Users export is available to Manager only.
 
 - **Modern UI/UX**
   - **Responsive Design**: Built with Tailwind CSS, featuring mobile-friendly navigation and scrollable data tables.
@@ -119,13 +120,13 @@ php artisan test tests/Feature/ItemControllerTest.php
 | Module | Tests | Assertions |
 |---|---|---|
 | Auth / Dashboard | 5 | ~10 |
-| Category | 9 | ~16 |
-| Item | 12 | ~19 |
-| Stock In | 13 | ~22 |
-| Stock Out | 14 | ~28 |
-| Maintenance | 14 | ~26 |
-| User Management | 17 | ~30 |
-| **Total** | **84** | **151+** |
+| Category | 13 | ~22 |
+| Item | 18 | ~28 |
+| Stock In | 18 | ~32 |
+| Stock Out | 19 | ~38 |
+| Maintenance | 20 | ~36 |
+| User Management | 23 | ~42 |
+| **Total** | **116** | **208+** |
 
 ### What is tested
 
@@ -140,7 +141,8 @@ php artisan test tests/Feature/ItemControllerTest.php
 - Stock reconciliation on record update and delete
 - Category deletion blocked when items exist
 - Manager self-delete prevention
-- Excel export available to all approved users (except User export — Manager only)
+- Excel export (Items, Categories, Stock In, Stock Out, Maintenance) available to both Admin and Manager
+- Users export available to Manager only; Admin is blocked from users export route
 - Export filter parameters (search, status)
 - Input validation for all forms
 
