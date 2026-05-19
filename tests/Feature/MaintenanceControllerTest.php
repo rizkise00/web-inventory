@@ -17,6 +17,11 @@ class MaintenanceControllerTest extends TestCase
         return User::factory()->create();
     }
 
+    private function manager(): User
+    {
+        return User::factory()->manager()->create();
+    }
+
     private function postMaintenance(User $user, Item $item, array $overrides = []): \Illuminate\Testing\TestResponse
     {
         return $this->actingAs($user)->post('/maintenances', array_merge([
@@ -174,9 +179,84 @@ class MaintenanceControllerTest extends TestCase
             ->assertDownload('maintenances.xlsx');
     }
 
-    public function test_non_manager_cannot_export_maintenances(): void
+    public function test_admin_can_export_maintenances(): void
     {
         $this->actingAs($this->user())->get('/maintenances/export')
-            ->assertRedirect(route('dashboard'));
+            ->assertDownload('maintenances.xlsx');
+    }
+
+    // --- Manager CRUD tests ---
+
+    public function test_manager_can_view_maintenances(): void
+    {
+        $this->actingAs($this->manager())->get('/maintenances')->assertOk();
+    }
+
+    public function test_manager_can_view_create_maintenance_form(): void
+    {
+        $this->actingAs($this->manager())->get('/maintenances/create')->assertOk();
+    }
+
+    public function test_manager_can_create_maintenance_and_stock_decrements(): void
+    {
+        $manager = $this->manager();
+        $item = Item::factory()->create(['stock' => 10]);
+
+        $this->actingAs($manager)->post('/maintenances', [
+            'item_id' => $item->id,
+            'quantity' => 4,
+            'date' => '2026-05-19',
+            'status' => 'Pending',
+        ])->assertRedirect('/maintenances');
+
+        $this->assertEquals(6, $item->fresh()->stock);
+        $this->assertDatabaseHas('maintenances', ['item_id' => $item->id, 'quantity' => 4]);
+    }
+
+    public function test_manager_can_view_maintenance_detail(): void
+    {
+        $manager = $this->manager();
+        $item = Item::factory()->create(['stock' => 10]);
+        $this->postMaintenance($manager, $item);
+        $maintenance = Maintenance::first();
+
+        $this->actingAs($manager)->get("/maintenances/{$maintenance->id}")->assertOk();
+    }
+
+    public function test_manager_can_update_maintenance_to_completed_returns_stock(): void
+    {
+        $manager = $this->manager();
+        $item = Item::factory()->create(['stock' => 10]);
+
+        $this->postMaintenance($manager, $item, ['quantity' => 3, 'status' => 'Pending']);
+        $this->assertEquals(7, $item->fresh()->stock);
+
+        $maintenance = Maintenance::first();
+
+        $this->actingAs($manager)->put("/maintenances/{$maintenance->id}", [
+            'item_id' => $item->id,
+            'quantity' => 3,
+            'date' => '2026-05-19',
+            'status' => 'Completed',
+        ])->assertRedirect('/maintenances');
+
+        $this->assertEquals(10, $item->fresh()->stock);
+    }
+
+    public function test_manager_can_delete_maintenance_and_stock_returns(): void
+    {
+        $manager = $this->manager();
+        $item = Item::factory()->create(['stock' => 10]);
+
+        $this->postMaintenance($manager, $item, ['quantity' => 2, 'status' => 'Pending']);
+        $this->assertEquals(8, $item->fresh()->stock);
+
+        $maintenance = Maintenance::first();
+
+        $this->actingAs($manager)->delete("/maintenances/{$maintenance->id}")
+            ->assertRedirect('/maintenances');
+
+        $this->assertEquals(10, $item->fresh()->stock);
+        $this->assertDatabaseMissing('maintenances', ['id' => $maintenance->id]);
     }
 }

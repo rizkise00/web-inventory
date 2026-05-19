@@ -178,4 +178,63 @@ class UserControllerTest extends TestCase
         $this->actingAs($this->regular())->get('/users/export')
             ->assertRedirect(route('dashboard'));
     }
+
+    // --- Admin (non-manager) blocked tests for all user management routes ---
+
+    public function test_admin_cannot_access_create_user_form(): void
+    {
+        $this->actingAs($this->regular())->get('/users/create')
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_admin_cannot_create_user(): void
+    {
+        $this->actingAs($this->regular())->post('/users', [
+            'name' => 'Hacker',
+            'email' => 'hacker@example.com',
+            'password' => 'password',
+            'role' => 'admin',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseMissing('users', ['email' => 'hacker@example.com']);
+    }
+
+    public function test_admin_cannot_view_user_detail(): void
+    {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->regular())->get("/users/{$target->id}")
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_admin_cannot_access_edit_user_form(): void
+    {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->regular())->get("/users/{$target->id}/edit")
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_admin_cannot_update_user(): void
+    {
+        $target = User::factory()->create(['name' => 'Original Name']);
+
+        $this->actingAs($this->regular())->put("/users/{$target->id}", [
+            'name' => 'Changed Name',
+            'email' => $target->email,
+            'role' => 'manager',
+        ])->assertRedirect(route('dashboard'));
+
+        $this->assertEquals('Original Name', $target->fresh()->name);
+    }
+
+    public function test_admin_cannot_delete_user(): void
+    {
+        $target = User::factory()->create();
+
+        $this->actingAs($this->regular())->delete("/users/{$target->id}")
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('users', ['id' => $target->id]);
+    }
 }

@@ -182,10 +182,6 @@ class MaintenanceController extends Controller
 
     public function export(Request $request)
     {
-        if (!auth()->user()->isManager()) {
-            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
-        }
-
         $search = $request->input('search');
         $status = $request->input('status');
 

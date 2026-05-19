@@ -110,10 +110,6 @@ class StockInController extends Controller
 
     public function export(Request $request)
     {
-        if (!auth()->user()->isManager()) {
-            return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
-        }
-
         return (new StockInExport($request->input('item_name'), $request->input('user_name')))->download('stock-in.xlsx');
     }
 }

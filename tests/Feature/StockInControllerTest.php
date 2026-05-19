@@ -17,6 +17,11 @@ class StockInControllerTest extends TestCase
         return User::factory()->create();
     }
 
+    private function manager(): User
+    {
+        return User::factory()->manager()->create();
+    }
+
     public function test_guest_redirected_from_stock_in(): void
     {
         $this->get('/stock-in')->assertRedirect(route('login'));
@@ -129,16 +134,68 @@ class StockInControllerTest extends TestCase
             ->assertDownload('stock-in.xlsx');
     }
 
-    public function test_non_manager_cannot_export_stock_in(): void
+    public function test_admin_can_export_stock_in(): void
     {
         $this->actingAs($this->user())->get('/stock-in/export')
-            ->assertRedirect(route('dashboard'));
+            ->assertDownload('stock-in.xlsx');
     }
 
     public function test_export_respects_item_name_filter(): void
     {
-        $manager = User::factory()->manager()->create();
-        $this->actingAs($manager)->get('/stock-in/export?item_name=Laptop')
+        $this->actingAs($this->manager())->get('/stock-in/export?item_name=Laptop')
             ->assertDownload('stock-in.xlsx');
+    }
+
+    // --- Manager CRUD tests ---
+
+    public function test_manager_can_view_stock_in_list(): void
+    {
+        $this->actingAs($this->manager())->get('/stock-in')->assertOk();
+    }
+
+    public function test_manager_can_create_stock_in(): void
+    {
+        $item = Item::factory()->create(['stock' => 0]);
+
+        $this->actingAs($this->manager())->post('/stock-in', [
+            'item_id' => $item->id,
+            'quantity' => 30,
+        ])->assertRedirect('/stock-in');
+
+        $this->assertDatabaseHas('stock_ins', ['item_id' => $item->id, 'quantity' => 30]);
+        $this->assertEquals(30, $item->fresh()->stock);
+    }
+
+    public function test_manager_can_view_stock_in_detail(): void
+    {
+        $item = Item::factory()->create(['stock' => 0]);
+        $stockIn = StockIn::factory()->create(['item_id' => $item->id, 'quantity' => 5]);
+
+        $this->actingAs($this->manager())->get("/stock-in/{$stockIn->id}")->assertOk();
+    }
+
+    public function test_manager_can_update_stock_in(): void
+    {
+        $item = Item::factory()->create(['stock' => 0]);
+        $stockIn = StockIn::factory()->create(['item_id' => $item->id, 'quantity' => 10]);
+
+        $this->actingAs($this->manager())->put("/stock-in/{$stockIn->id}", [
+            'item_id' => $item->id,
+            'quantity' => 25,
+        ])->assertRedirect('/stock-in');
+
+        $this->assertEquals(25, $item->fresh()->stock);
+    }
+
+    public function test_manager_can_delete_stock_in(): void
+    {
+        $item = Item::factory()->create(['stock' => 0]);
+        $stockIn = StockIn::factory()->create(['item_id' => $item->id, 'quantity' => 10]);
+
+        $this->actingAs($this->manager())->delete("/stock-in/{$stockIn->id}")
+            ->assertRedirect('/stock-in');
+
+        $this->assertEquals(0, $item->fresh()->stock);
+        $this->assertDatabaseMissing('stock_ins', ['id' => $stockIn->id]);
     }
 }

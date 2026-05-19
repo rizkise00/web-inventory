@@ -25,12 +25,13 @@ A modern, comprehensive web-based inventory management system built with Laravel
   - Multi-role system (**Admin** and **Manager**).
   - Manager-exclusive approval workflow for new user registrations.
   - Role-based navigation and action permissions.
-  - Manager-only export for Users, Items, Categories, Stock Out, and Maintenance data.
+  - Both Admin and Manager have full access to: Products, Categories, Stock In, Stock Out, and Maintenance (CRUD + export).
+  - Manager-only feature: User management (view, create, edit, approve, reject, delete, export).
 
 - **Data Export**
   - All modules support one-click `.xlsx` export (Excel).
   - Export supports search/filter parameters (e.g., export only filtered items or stock records).
-  - Access restricted: only Managers can export sensitive reports.
+  - User export is restricted to Managers only; all other exports are available to both Admin and Manager.
 
 - **Modern UI/UX**
   - **Responsive Design**: Built with Tailwind CSS, featuring mobile-friendly navigation and scrollable data tables.
@@ -118,13 +119,13 @@ php artisan test tests/Feature/ItemControllerTest.php
 | Module | Tests | Assertions |
 |---|---|---|
 | Auth / Dashboard | 5 | ~10 |
-| Category | 8 | ~14 |
-| Item | 11 | ~17 |
+| Category | 9 | ~16 |
+| Item | 12 | ~19 |
 | Stock In | 13 | ~22 |
 | Stock Out | 14 | ~28 |
 | Maintenance | 14 | ~26 |
 | User Management | 17 | ~30 |
-| **Total** | **83** | **177** |
+| **Total** | **84** | **151+** |
 
 ### What is tested
 
@@ -132,12 +133,14 @@ php artisan test tests/Feature/ItemControllerTest.php
 - Role-based access: Admin vs. Manager permissions
 - Unapproved user access restriction
 - CRUD operations for all modules
+- Admin and Manager can perform full CRUD on Products, Categories, Stock In, Stock Out, and Maintenance
+- Only Manager can access User management routes
 - Stock increment/decrement accuracy on Stock In, Stock Out, and Maintenance
 - Insufficient stock validation (cannot over-allocate)
 - Stock reconciliation on record update and delete
 - Category deletion blocked when items exist
 - Manager self-delete prevention
-- Excel export availability (Managers only) and access denial (non-Managers)
+- Excel export available to all approved users (except User export — Manager only)
 - Export filter parameters (search, status)
 - Input validation for all forms
 

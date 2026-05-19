@@ -18,7 +18,7 @@ Route::get('/register', [RegisterController::class, 'show'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Protected routes
+// Protected routes (all authenticated & approved users)
 Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/stock-in/export', [StockInController::class, 'export'])->name('stock-in.export');
@@ -27,16 +27,16 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::resource('stock-out', StockOutController::class);
     Route::get('/maintenances/export', [MaintenanceController::class, 'export'])->name('maintenances.export');
     Route::resource('maintenances', MaintenanceController::class);
+    Route::get('/items/export', [ItemController::class, 'export'])->name('items.export');
+    Route::resource('items', ItemController::class);
+    Route::get('/categories/export', [CategoryController::class, 'export'])->name('categories.export');
+    Route::resource('categories', CategoryController::class);
 });
 
-// Manager only - User management and Product/Category management
+// Manager only - User management
 Route::middleware(['auth', 'approved', 'manager'])->group(function () {
     Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
     Route::resource('users', UserController::class);
     Route::post('/users/{user}/approve', [UserController::class, 'approve'])->name('users.approve');
     Route::post('/users/{user}/reject', [UserController::class, 'reject'])->name('users.reject');
-    Route::get('/items/export', [ItemController::class, 'export'])->name('items.export');
-    Route::resource('items', ItemController::class);
-    Route::get('/categories/export', [CategoryController::class, 'export'])->name('categories.export');
-    Route::resource('categories', CategoryController::class);
 });

@@ -40,15 +40,15 @@
                     
                     <!-- Items Dropdown -->
                     <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                        <button type="button" 
+                        <button type="button"
                             class="flex items-center px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
-                            :class="open || {{ (auth()->user()->isManager() && request()->routeIs(['items.*', 'categories.*'])) || request()->routeIs(['stock-in.*', 'stock-out.*']) ? 'true' : 'false' }} ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'">
-                            <span>@if(auth()->user()->isManager())Items @else Stock @endif</span>
+                            :class="open || {{ request()->routeIs(['items.*', 'categories.*', 'stock-in.*', 'stock-out.*']) ? 'true' : 'false' }} ? 'text-blue-600 bg-blue-50' : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'">
+                            <span>Items</span>
                             <svg class="ml-1 w-4 h-4 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div x-show="open" 
+                        <div x-show="open"
                             x-transition:enter="transition ease-out duration-100"
                             x-transition:enter-start="opacity-0 scale-95"
                             x-transition:enter-end="opacity-100 scale-100"
@@ -57,7 +57,6 @@
                             x-transition:leave-end="opacity-0 scale-95"
                             class="absolute left-0 mt-0 w-64 bg-white rounded-xl shadow-xl border border-gray-100 z-50 py-2"
                             style="display: none;">
-                            @if(auth()->user()->isManager())
                             <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('categories.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
                                 <div class="flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
@@ -71,7 +70,6 @@
                                 </div>
                             </a>
                             <div class="border-t border-gray-100 my-1"></div>
-                            @endif
                             <a href="{{ route('stock-in.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 {{ request()->routeIs('stock-in.*') ? 'bg-blue-50 text-blue-600 font-bold' : '' }}">
                                 <div class="flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
