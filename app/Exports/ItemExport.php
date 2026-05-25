@@ -8,11 +8,15 @@ class ItemExport extends ExcelExport
 {
     protected $search;
     protected $lowStock;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($search = null, $lowStock = null)
+    public function __construct($search = null, $lowStock = null, $dateFrom = null, $dateTo = null)
     {
-        $this->search = $search;
+        $this->search   = $search;
         $this->lowStock = $lowStock;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo   = $dateTo;
     }
 
     public function query()
@@ -22,6 +26,10 @@ class ItemExport extends ExcelExport
                 return $query->where('name', 'like', "%{$search}%");
             })->when($this->lowStock, function ($query) {
                 return $query->where('stock', '<', 5);
+            })->when($this->dateFrom, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })->when($this->dateTo, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
             });
     }
 

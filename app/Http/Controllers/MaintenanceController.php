@@ -13,9 +13,11 @@ class MaintenanceController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $status = $request->input('status');
-        
+        $search    = $request->input('search');
+        $status    = $request->input('status');
+        $date_from = $request->input('date_from');
+        $date_to   = $request->input('date_to');
+
         $query = Maintenance::with(['item', 'user'])->latest();
 
         if ($search) {
@@ -28,6 +30,14 @@ class MaintenanceController extends Controller
 
         if ($status) {
             $query->where('status', $status);
+        }
+
+        if ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        }
+
+        if ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
         }
 
         $maintenances = $query->paginate(10)->withQueryString();
@@ -182,9 +192,11 @@ class MaintenanceController extends Controller
 
     public function export(Request $request)
     {
-        $search = $request->input('search');
-        $status = $request->input('status');
-
-        return (new MaintenanceExport($search, $status))->download('maintenances.xlsx');
+        return (new MaintenanceExport(
+            $request->input('search'),
+            $request->input('status'),
+            $request->input('date_from'),
+            $request->input('date_to')
+        ))->download('maintenances.xlsx');
     }
 }

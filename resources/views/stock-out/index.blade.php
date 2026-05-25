@@ -22,33 +22,46 @@
         
         <!-- Search and Actions -->
         <div class="mb-6">
-            <form action="{{ route('stock-out.index') }}" method="GET" class="flex flex-col sm:flex-row gap-4 w-full">
-                <div class="relative flex-1">
-                    <input type="text" name="item_name" value="{{ request('item_name') }}" placeholder="Search by Item Name..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm transition-all">
-                    <div class="absolute left-3 top-2.5 text-gray-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <form action="{{ route('stock-out.index') }}" method="GET" class="space-y-3">
+                <!-- Filter fields: 3 equal-width columns (row 1) -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <input type="text" name="item_name" value="{{ request('item_name') }}" placeholder="Search by Item Name..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm transition-all">
+                        <div class="absolute left-3 top-2.5 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <select name="status" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm bg-white">
+                            <option value="">All Statuses</option>
+                            <option value="Consumed" {{ request('status') == 'Consumed' ? 'selected' : '' }}>Consumed</option>
+                            <option value="Damaged" {{ request('status') == 'Damaged' ? 'selected' : '' }}>Damaged</option>
+                        </select>
+                    </div>
+                    <div class="relative flex-1">
+                        <input type="hidden" name="date_from" id="date_from_stockout" value="{{ request('date_from') }}">
+                        <input type="hidden" name="date_to" id="date_to_stockout" value="{{ request('date_to') }}">
+                        <input type="text" id="daterange_stockout" placeholder="Select date range..." class="w-full py-2 px-3 pl-9 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm transition-all text-gray-700 cursor-pointer bg-white" readonly>
+                        <div class="absolute left-3 top-2.5 text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
                     </div>
                 </div>
-                <div class="relative flex-1">
-                    <input type="text" name="user_name" value="{{ request('user_name') }}" placeholder="Search by User Name..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm transition-all">
-                    <div class="absolute left-3 top-2.5 text-gray-400">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                    </div>
+                <!-- Action buttons -->
+                <div class="flex flex-wrap gap-2 items-center justify-end">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center text-sm">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"></path></svg>
+                        Filter
+                    </button>
+                    @if(request()->hasAny(['item_name', 'status', 'date_from', 'date_to']))
+                    <a href="{{ route('stock-out.index') }}" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg text-sm transition-all duration-200">Reset</a>
+                    @endif
+                    <a href="{{ route('stock-out.export', request()->only(['item_name', 'status', 'date_from', 'date_to'])) }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-5 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center text-sm">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export
+                    </a>
                 </div>
-                <div class="relative flex-1">
-                    <select name="status" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm bg-white">
-                        <option value="">All Statuses</option>
-                        <option value="Consumed" {{ request('status') == 'Consumed' ? 'selected' : '' }}>Consumed</option>
-                        <option value="Damaged" {{ request('status') == 'Damaged' ? 'selected' : '' }}>Damaged</option>
-                    </select>
-                </div>
-                <a href="{{ route('stock-out.export', request()->only(['item_name', 'user_name', 'status'])) }}" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center whitespace-nowrap">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Export
-                </a>
-                </form>
+            </form>
         </div>
 
         <!-- Table Card -->
@@ -62,7 +75,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Unit Price</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">User</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Created At</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -112,6 +125,22 @@
 
 @push('scripts')
 <script>
+// Flatpickr date range
+(function() {
+    const fp = flatpickr('#daterange_stockout', {
+        mode: 'range',
+        dateFormat: 'Y-m-d',
+        onChange: function(selectedDates) {
+            document.getElementById('date_from_stockout').value = selectedDates.length >= 1 ? flatpickr.formatDate(selectedDates[0], 'Y-m-d') : '';
+            document.getElementById('date_to_stockout').value   = selectedDates.length >= 2 ? flatpickr.formatDate(selectedDates[1], 'Y-m-d') : '';
+        }
+    });
+    const df = document.getElementById('date_from_stockout').value;
+    const dt = document.getElementById('date_to_stockout').value;
+    if (df && dt) fp.setDate([df, dt]);
+    else if (df) fp.setDate([df]);
+})();
+
 // Delete confirmation
 document.querySelectorAll('.delete-form').forEach(form => {
     form.addEventListener('submit', function(e) {

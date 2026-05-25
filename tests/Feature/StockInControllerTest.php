@@ -198,4 +198,64 @@ class StockInControllerTest extends TestCase
         $this->assertEquals(0, $item->fresh()->stock);
         $this->assertDatabaseMissing('stock_ins', ['id' => $stockIn->id]);
     }
+
+    // --- Date range filter tests ---
+
+    public function test_date_from_filter_stock_in(): void
+    {
+        $user = $this->user();
+        $itemOld = Item::factory()->create(['name' => 'OldItemStockIn', 'stock' => 0]);
+        $itemNew = Item::factory()->create(['name' => 'NewItemStockIn', 'stock' => 0]);
+
+        StockIn::factory()->create(['item_id' => $itemOld->id, 'created_at' => '2026-01-10 10:00:00']);
+        StockIn::factory()->create(['item_id' => $itemNew->id, 'created_at' => '2026-05-20 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-in?date_from=2026-05-01');
+
+        $response->assertOk();
+        $response->assertSee('NewItemStockIn');
+        $response->assertDontSee('OldItemStockIn');
+    }
+
+    public function test_date_to_filter_stock_in(): void
+    {
+        $user = $this->user();
+        $itemOld = Item::factory()->create(['name' => 'EarlyItemStockIn', 'stock' => 0]);
+        $itemNew = Item::factory()->create(['name' => 'LateItemStockIn', 'stock' => 0]);
+
+        StockIn::factory()->create(['item_id' => $itemOld->id, 'created_at' => '2026-01-10 10:00:00']);
+        StockIn::factory()->create(['item_id' => $itemNew->id, 'created_at' => '2026-05-20 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-in?date_to=2026-03-31');
+
+        $response->assertOk();
+        $response->assertSee('EarlyItemStockIn');
+        $response->assertDontSee('LateItemStockIn');
+    }
+
+    public function test_date_range_filter_stock_in(): void
+    {
+        $user = $this->user();
+        $itemA = Item::factory()->create(['name' => 'BeforeRangeStockIn', 'stock' => 0]);
+        $itemB = Item::factory()->create(['name' => 'InRangeStockIn', 'stock' => 0]);
+        $itemC = Item::factory()->create(['name' => 'AfterRangeStockIn', 'stock' => 0]);
+
+        StockIn::factory()->create(['item_id' => $itemA->id, 'created_at' => '2026-01-05 10:00:00']);
+        StockIn::factory()->create(['item_id' => $itemB->id, 'created_at' => '2026-03-15 10:00:00']);
+        StockIn::factory()->create(['item_id' => $itemC->id, 'created_at' => '2026-06-01 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-in?date_from=2026-03-01&date_to=2026-03-31');
+
+        $response->assertOk();
+        $response->assertSee('InRangeStockIn');
+        $response->assertDontSee('BeforeRangeStockIn');
+        $response->assertDontSee('AfterRangeStockIn');
+    }
+
+    public function test_export_respects_date_range_filter_stock_in(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-in/export?date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('stock-in.xlsx');
+    }
 }

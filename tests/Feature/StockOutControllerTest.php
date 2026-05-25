@@ -221,4 +221,64 @@ class StockOutControllerTest extends TestCase
         $this->assertEquals(20, $item->fresh()->stock);
         $this->assertDatabaseMissing('stock_outs', ['id' => $stockOut->id]);
     }
+
+    // --- Date range filter tests ---
+
+    public function test_date_from_filter_stock_out(): void
+    {
+        $user = $this->user();
+        $itemOld = Item::factory()->create(['name' => 'OldItemStockOut', 'stock' => 20]);
+        $itemNew = Item::factory()->create(['name' => 'NewItemStockOut', 'stock' => 20]);
+
+        StockOut::factory()->create(['item_id' => $itemOld->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-01-10 10:00:00']);
+        StockOut::factory()->create(['item_id' => $itemNew->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-05-20 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-out?date_from=2026-05-01');
+
+        $response->assertOk();
+        $response->assertSee('NewItemStockOut');
+        $response->assertDontSee('OldItemStockOut');
+    }
+
+    public function test_date_to_filter_stock_out(): void
+    {
+        $user = $this->user();
+        $itemOld = Item::factory()->create(['name' => 'EarlyItemStockOut', 'stock' => 20]);
+        $itemNew = Item::factory()->create(['name' => 'LateItemStockOut', 'stock' => 20]);
+
+        StockOut::factory()->create(['item_id' => $itemOld->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-01-10 10:00:00']);
+        StockOut::factory()->create(['item_id' => $itemNew->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-05-20 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-out?date_to=2026-03-31');
+
+        $response->assertOk();
+        $response->assertSee('EarlyItemStockOut');
+        $response->assertDontSee('LateItemStockOut');
+    }
+
+    public function test_date_range_filter_stock_out(): void
+    {
+        $user = $this->user();
+        $itemA = Item::factory()->create(['name' => 'BeforeRangeStockOut', 'stock' => 20]);
+        $itemB = Item::factory()->create(['name' => 'InRangeStockOut', 'stock' => 20]);
+        $itemC = Item::factory()->create(['name' => 'AfterRangeStockOut', 'stock' => 20]);
+
+        StockOut::factory()->create(['item_id' => $itemA->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-01-05 10:00:00']);
+        StockOut::factory()->create(['item_id' => $itemB->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-03-15 10:00:00']);
+        StockOut::factory()->create(['item_id' => $itemC->id, 'quantity' => 1, 'status' => 'Consumed', 'created_at' => '2026-06-01 10:00:00']);
+
+        $response = $this->actingAs($user)->get('/stock-out?date_from=2026-03-01&date_to=2026-03-31');
+
+        $response->assertOk();
+        $response->assertSee('InRangeStockOut');
+        $response->assertDontSee('BeforeRangeStockOut');
+        $response->assertDontSee('AfterRangeStockOut');
+    }
+
+    public function test_export_respects_date_range_filter_stock_out(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-out/export?date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('stock-out.xlsx');
+    }
 }

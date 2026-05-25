@@ -9,12 +9,16 @@ class UserExport extends ExcelExport
     protected $search;
     protected $role;
     protected $status;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($search = null, $role = null, $status = null)
+    public function __construct($search = null, $role = null, $status = null, $dateFrom = null, $dateTo = null)
     {
-        $this->search = $search;
-        $this->role = $role;
-        $this->status = $status;
+        $this->search   = $search;
+        $this->role     = $role;
+        $this->status   = $status;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo   = $dateTo;
     }
 
     public function query()
@@ -28,6 +32,10 @@ class UserExport extends ExcelExport
             return $query->where('role', $role);
         })->when($this->status, function ($query, $status) {
             return $query->where('is_approved', $status === 'approved' ? 1 : 0);
+        })->when($this->dateFrom, function ($query, $dateFrom) {
+            return $query->whereDate('created_at', '>=', $dateFrom);
+        })->when($this->dateTo, function ($query, $dateTo) {
+            return $query->whereDate('created_at', '<=', $dateTo);
         });
     }
 

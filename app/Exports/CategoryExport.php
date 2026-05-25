@@ -7,16 +7,24 @@ use App\Models\Category;
 class CategoryExport extends ExcelExport
 {
     protected $search;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($search = null)
+    public function __construct($search = null, $dateFrom = null, $dateTo = null)
     {
-        $this->search = $search;
+        $this->search   = $search;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo   = $dateTo;
     }
 
     public function query()
     {
         return Category::when($this->search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
+        })->when($this->dateFrom, function ($query, $dateFrom) {
+            return $query->whereDate('created_at', '>=', $dateFrom);
+        })->when($this->dateTo, function ($query, $dateTo) {
+            return $query->whereDate('created_at', '<=', $dateTo);
         });
     }
 

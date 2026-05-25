@@ -15,8 +15,10 @@ class StockOutController extends Controller
     {
         $item_name = $request->input('item_name');
         $user_name = $request->input('user_name');
-        $status = $request->input('status');
-        
+        $status    = $request->input('status');
+        $date_from = $request->input('date_from');
+        $date_to   = $request->input('date_to');
+
         $query = StockOut::with(['user', 'item'])->latest();
 
         if ($item_name) {
@@ -33,6 +35,14 @@ class StockOutController extends Controller
 
         if ($status) {
             $query->where('status', $status);
+        }
+
+        if ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        }
+
+        if ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
         }
 
         $stockOuts = $query->paginate(10)->withQueryString();
@@ -139,7 +149,9 @@ class StockOutController extends Controller
         return (new StockOutExport(
             $request->input('item_name'),
             $request->input('user_name'),
-            $request->input('status')
+            $request->input('status'),
+            $request->input('date_from'),
+            $request->input('date_to')
         ))->download('stock-out.xlsx');
     }
 }

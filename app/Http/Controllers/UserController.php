@@ -13,10 +13,12 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $role = $request->input('role');
-        $status = $request->input('status');
-        
+        $search    = $request->input('search');
+        $role      = $request->input('role');
+        $status    = $request->input('status');
+        $date_from = $request->input('date_from');
+        $date_to   = $request->input('date_to');
+
         $query = \App\Models\User::latest();
 
         if(!auth()->user()->isManager()) {
@@ -36,6 +38,14 @@ class UserController extends Controller
 
         if ($status) {
             $query->where('is_approved', $status === 'approved' ? 1 : 0);
+        }
+
+        if ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        }
+
+        if ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
         }
 
         $users = $query->paginate(10)->withQueryString();
@@ -168,10 +178,12 @@ class UserController extends Controller
             return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
         }
 
-        $search = $request->input('search');
-        $role = $request->input('role');
-        $status = $request->input('status');
-
-        return (new UserExport($search, $role, $status))->download('users.xlsx');
+        return (new UserExport(
+            $request->input('search'),
+            $request->input('role'),
+            $request->input('status'),
+            $request->input('date_from'),
+            $request->input('date_to')
+        ))->download('users.xlsx');
     }
 }

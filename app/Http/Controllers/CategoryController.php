@@ -8,13 +8,27 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $search = request('search');
-        $categories = Category::when($search, function($query, $search) {
-            return $query->where('name', 'like', "%{$search}%");
-        })->paginate(10);
-        
+        $search    = $request->input('search');
+        $date_from = $request->input('date_from');
+        $date_to   = $request->input('date_to');
+
+        $query = Category::latest();
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        if ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        }
+
+        if ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
+        }
+
+        $categories = $query->paginate(10)->withQueryString();
         return view('categories.index', compact('categories'));
     }
 
@@ -67,8 +81,10 @@ class CategoryController extends Controller
 
     public function export(Request $request)
     {
-        $search = $request->input('search');
-
-        return (new CategoryExport($search))->download('categories.xlsx');
+        return (new CategoryExport(
+            $request->input('search'),
+            $request->input('date_from'),
+            $request->input('date_to')
+        ))->download('categories.xlsx');
     }
 }

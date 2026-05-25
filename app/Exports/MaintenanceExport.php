@@ -8,11 +8,15 @@ class MaintenanceExport extends ExcelExport
 {
     protected $search;
     protected $status;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($search = null, $status = null)
+    public function __construct($search = null, $status = null, $dateFrom = null, $dateTo = null)
     {
-        $this->search = $search;
-        $this->status = $status;
+        $this->search   = $search;
+        $this->status   = $status;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo   = $dateTo;
     }
 
     public function query()
@@ -26,6 +30,10 @@ class MaintenanceExport extends ExcelExport
                 });
             })->when($this->status, function ($query, $status) {
                 return $query->where('status', $status);
+            })->when($this->dateFrom, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })->when($this->dateTo, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
             });
     }
 

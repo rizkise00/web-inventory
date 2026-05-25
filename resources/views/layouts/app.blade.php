@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Web Inventory')</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen">
@@ -111,6 +112,7 @@
         @yield('content')
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     @stack('scripts')
 
     <script>
@@ -201,7 +203,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const searchForms = document.querySelectorAll('form[method="GET"]');
         searchForms.forEach(form => {
-            const textInputs = form.querySelectorAll('input[type="text"]');
+            const textInputs = form.querySelectorAll('input[type="text"]:not([readonly])');
             let timeout = null;
             
             textInputs.forEach(input => {

@@ -8,11 +8,13 @@ A modern, comprehensive web-based inventory management system built with Laravel
   - Hierarchical organization using Categories.
   - Detailed Product tracking with pricing and real-time stock levels.
   - Standardized CRUD interfaces for consistency.
+  - Date range filter on Products and Categories index pages.
 
 - **Advanced Stock Tracking**
   - **Stock In**: Record new inventory with automatic unit price fetching and total price calculation.
   - **Stock Out**: Track outgoing items with status categorization (**Consumed** or **Damaged**) and availability validation.
-  - **Exporting**: One-click export of Stock In and Stock Out data to `.xlsx` (Excel) files, supporting filtered views.
+  - **Date Range Filter**: Filter Stock In and Stock Out records by start date and end date on the index and export.
+  - **Exporting**: One-click export of all modules to `.xlsx` (Excel) files, supporting all active filters including date range.
 
 - **Maintenance Module**
   - Track products undergoing repair or service.
@@ -20,6 +22,7 @@ A modern, comprehensive web-based inventory management system built with Laravel
     - Automatically deducts stock when items enter maintenance (Pending/In Progress).
     - Automatically restores stock when maintenance is marked as **Completed**.
     - Handles stock reconciliation when records are updated or deleted.
+  - Date range filter on the Maintenance index page.
 
 - **User & Access Control**
   - Multi-role system (**Admin** and **Manager**).
@@ -28,9 +31,15 @@ A modern, comprehensive web-based inventory management system built with Laravel
   - Both Admin and Manager have full access to: Products, Categories, Stock In, Stock Out, and Maintenance (CRUD + export).
   - Manager-only feature: User management (view, create, edit, approve, reject, delete) and Users export.
 
+- **Advanced Filtering**
+  - Every module index page supports a **date range filter** (From — To) based on record creation date.
+  - Filters stack: search text, dropdowns (status/role/low_stock), and date range can be combined.
+  - A **Reset** button appears automatically when any filter is active.
+  - All active filters are preserved when exporting to Excel.
+
 - **Data Export**
   - All modules support one-click `.xlsx` export (Excel).
-  - Export supports search/filter parameters (e.g., export only filtered items or stock records).
+  - Export respects all active filters: search, status, date range, etc.
   - Items, Categories, Stock In, Stock Out, and Maintenance exports are available to both Admin and Manager.
   - Users export is available to Manager only.
 
@@ -122,11 +131,11 @@ php artisan test tests/Feature/ItemControllerTest.php
 | Auth / Dashboard | 5 | ~10 |
 | Category | 13 | ~22 |
 | Item | 18 | ~28 |
-| Stock In | 18 | ~32 |
-| Stock Out | 19 | ~38 |
+| Stock In | 22 | ~40 |
+| Stock Out | 23 | ~46 |
 | Maintenance | 20 | ~36 |
 | User Management | 23 | ~42 |
-| **Total** | **116** | **208+** |
+| **Total** | **124** | **224+** |
 
 ### What is tested
 
@@ -143,7 +152,8 @@ php artisan test tests/Feature/ItemControllerTest.php
 - Manager self-delete prevention
 - Excel export (Items, Categories, Stock In, Stock Out, Maintenance) available to both Admin and Manager
 - Users export available to Manager only; Admin is blocked from users export route
-- Export filter parameters (search, status)
+- Export filter parameters (search, status, date range)
+- Date range filter (date_from / date_to) on all module index pages
 - Input validation for all forms
 
 ## Security
@@ -166,5 +176,6 @@ This project uses **phpoffice/phpspreadsheet ^2.0** which supports PHP 8.1–8.5
 - [x] Responsive Data Tables
 - [x] Role-based Access Control
 - [x] PHP 8.5 Compatibility
+- [x] Date Range Filter (all modules)
 - [ ] Low Stock Notifications
 - [ ] Supplier Management

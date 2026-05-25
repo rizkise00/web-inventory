@@ -8,11 +8,15 @@ class StockInExport extends ExcelExport
 {
     protected $itemName;
     protected $userName;
+    protected $dateFrom;
+    protected $dateTo;
 
-    public function __construct($itemName = null, $userName = null)
+    public function __construct($itemName = null, $userName = null, $dateFrom = null, $dateTo = null)
     {
         $this->itemName = $itemName;
         $this->userName = $userName;
+        $this->dateFrom = $dateFrom;
+        $this->dateTo   = $dateTo;
     }
 
     public function query()
@@ -27,6 +31,12 @@ class StockInExport extends ExcelExport
                 return $query->whereHas('user', function ($q) use ($userName) {
                     $q->where('name', 'like', "%{$userName}%");
                 });
+            })
+            ->when($this->dateFrom, function ($query, $dateFrom) {
+                return $query->whereDate('created_at', '>=', $dateFrom);
+            })
+            ->when($this->dateTo, function ($query, $dateTo) {
+                return $query->whereDate('created_at', '<=', $dateTo);
             })
             ->latest();
     }

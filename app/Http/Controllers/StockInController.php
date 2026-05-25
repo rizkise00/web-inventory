@@ -14,7 +14,9 @@ class StockInController extends Controller
     {
         $item_name = $request->input('item_name');
         $user_name = $request->input('user_name');
-        
+        $date_from = $request->input('date_from');
+        $date_to   = $request->input('date_to');
+
         $query = StockIn::with(['user', 'item'])->latest();
 
         if ($item_name) {
@@ -27,6 +29,14 @@ class StockInController extends Controller
             $query->whereHas('user', function($q) use ($user_name) {
                 $q->where('name', 'like', "%$user_name%");
             });
+        }
+
+        if ($date_from) {
+            $query->whereDate('created_at', '>=', $date_from);
+        }
+
+        if ($date_to) {
+            $query->whereDate('created_at', '<=', $date_to);
         }
 
         $stockIns = $query->paginate(10)->withQueryString();
@@ -110,6 +120,11 @@ class StockInController extends Controller
 
     public function export(Request $request)
     {
-        return (new StockInExport($request->input('item_name'), $request->input('user_name')))->download('stock-in.xlsx');
+        return (new StockInExport(
+            $request->input('item_name'),
+            $request->input('user_name'),
+            $request->input('date_from'),
+            $request->input('date_to')
+        ))->download('stock-in.xlsx');
     }
 }
