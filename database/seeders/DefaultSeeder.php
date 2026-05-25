@@ -16,14 +16,7 @@ class DefaultSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        Maintenance::truncate();
-        StockOut::truncate();
-        StockIn::truncate();
-        Item::truncate();
-        Category::truncate();
-        User::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        DB::statement('TRUNCATE TABLE maintenances, stock_outs, stock_ins, items, categories, users RESTART IDENTITY CASCADE');
 
         User::create([
             'name'        => 'Manager User',
