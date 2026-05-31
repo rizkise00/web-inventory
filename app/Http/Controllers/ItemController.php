@@ -11,19 +11,25 @@ class ItemController extends Controller
 {
     public function index(Request $request)
     {
-        $search    = $request->input('search');
-        $low_stock = $request->input('low_stock');
-        $date_from = $request->input('date_from');
-        $date_to   = $request->input('date_to');
+        $search     = $request->input('search');
+        $low_stock  = $request->input('low_stock');
+        $date_from  = $request->input('date_from');
+        $date_to    = $request->input('date_to');
 
-        $query = Item::with('category')->latest();
+        $query = Item::with('category');
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
         }
 
         if ($low_stock === '1') {
-            $query->where('stock', '<', 5);
+            $query->where('stock', '<', 5)->latest();
+        } elseif ($low_stock === 'asc') {
+            $query->orderBy('stock', 'asc');
+        } elseif ($low_stock === 'desc') {
+            $query->orderBy('stock', 'desc');
+        } else {
+            $query->latest();
         }
 
         if ($date_from) {

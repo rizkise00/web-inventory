@@ -34,7 +34,9 @@
                     <div class="flex-1">
                         <select name="low_stock" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm bg-white">
                             <option value="">All Stock Levels</option>
-                            <option value="1" {{ request('low_stock') == '1' ? 'selected' : '' }}>Low Stock (< 5)</option>
+                            <option value="1"    {{ request('low_stock') == '1'    ? 'selected' : '' }}>Low Stock (&lt; 5)</option>
+                            <option value="asc"  {{ request('low_stock') == 'asc'  ? 'selected' : '' }}>Lowest Stock</option>
+                            <option value="desc" {{ request('low_stock') == 'desc' ? 'selected' : '' }}>Highest Stock</option>
                         </select>
                     </div>
                     <div class="relative flex-1">
