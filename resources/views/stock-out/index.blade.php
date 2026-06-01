@@ -32,7 +32,7 @@
                         </div>
                     </div>
                     <div class="flex-1">
-                        <select name="status" onchange="this.form.submit()" class="w-full py-2 px-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm bg-white">
+                        <select name="status" class="w-full py-2 px-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 shadow-sm bg-white">
                             <option value="">All Statuses</option>
                             <option value="Consumed" {{ request('status') == 'Consumed' ? 'selected' : '' }}>Consumed</option>
                             <option value="Damaged" {{ request('status') == 'Damaged' ? 'selected' : '' }}>Damaged</option>

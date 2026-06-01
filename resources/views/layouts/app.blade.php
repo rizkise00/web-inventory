@@ -199,23 +199,6 @@
         });
     });
 
-    // Auto-submit GET forms with debounce for Search/Filters
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchForms = document.querySelectorAll('form[method="GET"]');
-        searchForms.forEach(form => {
-            const textInputs = form.querySelectorAll('input[type="text"]:not([readonly])');
-            let timeout = null;
-            
-            textInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => {
-                        form.submit();
-                    }, 500); // 500ms delay
-                });
-            });
-        });
-    });
 
     // Logout confirmation
     document.querySelector('.logout-form')?.addEventListener('submit', function(e) {
