@@ -259,4 +259,43 @@ class MaintenanceControllerTest extends TestCase
         $this->assertEquals(10, $item->fresh()->stock);
         $this->assertDatabaseMissing('maintenances', ['id' => $maintenance->id]);
     }
+
+    // --- PDF export tests ---
+
+    public function test_user_can_export_maintenances_as_pdf(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/maintenances/export?format=pdf')
+            ->assertDownload('maintenances.pdf');
+    }
+
+    public function test_manager_can_export_maintenances_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/maintenances/export?format=pdf')
+            ->assertDownload('maintenances.pdf');
+    }
+
+    public function test_export_maintenances_pdf_with_status_filter(): void
+    {
+        $item = Item::factory()->create(['stock' => 10]);
+        $this->postMaintenance($this->user(), $item, ['status' => 'Completed']);
+
+        $this->actingAs($this->user())
+            ->get('/maintenances/export?format=pdf&status=Completed')
+            ->assertDownload('maintenances.pdf');
+    }
+
+    public function test_export_maintenances_pdf_with_date_range_filter(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/maintenances/export?format=pdf&date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('maintenances.pdf');
+    }
+
+    public function test_guest_cannot_export_maintenances_pdf(): void
+    {
+        $this->get('/maintenances/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
 }

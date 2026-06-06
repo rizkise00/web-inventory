@@ -164,6 +164,42 @@ class StockOutControllerTest extends TestCase
             ->assertDownload('stock-out.xlsx');
     }
 
+    // --- PDF export tests ---
+
+    public function test_user_can_export_stock_out_as_pdf(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-out/export?format=pdf')
+            ->assertDownload('stock-out.pdf');
+    }
+
+    public function test_manager_can_export_stock_out_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/stock-out/export?format=pdf')
+            ->assertDownload('stock-out.pdf');
+    }
+
+    public function test_export_stock_out_pdf_with_status_filter(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-out/export?format=pdf&status=Consumed')
+            ->assertDownload('stock-out.pdf');
+    }
+
+    public function test_export_stock_out_pdf_with_date_range_filter(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-out/export?format=pdf&date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('stock-out.pdf');
+    }
+
+    public function test_guest_cannot_export_stock_out_pdf(): void
+    {
+        $this->get('/stock-out/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
+
     // --- Manager CRUD tests ---
 
     public function test_manager_can_view_stock_out_list(): void

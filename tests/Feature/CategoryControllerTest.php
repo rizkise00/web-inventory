@@ -95,6 +95,44 @@ class CategoryControllerTest extends TestCase
             ->assertDownload('categories.xlsx');
     }
 
+    // --- PDF export tests ---
+
+    public function test_user_can_export_categories_as_pdf(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/categories/export?format=pdf')
+            ->assertDownload('categories.pdf');
+    }
+
+    public function test_manager_can_export_categories_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/categories/export?format=pdf')
+            ->assertDownload('categories.pdf');
+    }
+
+    public function test_export_categories_pdf_with_search_filter(): void
+    {
+        Category::factory()->create(['name' => 'Electronics PDF']);
+
+        $this->actingAs($this->user())
+            ->get('/categories/export?format=pdf&search=Electronics+PDF')
+            ->assertDownload('categories.pdf');
+    }
+
+    public function test_export_categories_pdf_with_date_range_filter(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/categories/export?format=pdf&date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('categories.pdf');
+    }
+
+    public function test_guest_cannot_export_categories_pdf(): void
+    {
+        $this->get('/categories/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
+
     // --- Manager CRUD tests ---
 
     public function test_manager_can_view_categories(): void

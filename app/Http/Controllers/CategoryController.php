@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Exports\CategoryExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
@@ -81,10 +82,19 @@ class CategoryController extends Controller
 
     public function export(Request $request)
     {
-        return (new CategoryExport(
+        $export = new CategoryExport(
             $request->input('search'),
             $request->input('date_from'),
             $request->input('date_to')
-        ))->download('categories.xlsx');
+        );
+
+        if ($request->input('format') === 'pdf') {
+            $data = $export->query()->get();
+            return Pdf::loadView('exports.pdf.categories', compact('data'))
+                ->setPaper('a4', 'portrait')
+                ->download('categories.pdf');
+        }
+
+        return $export->download('categories.xlsx');
     }
 }

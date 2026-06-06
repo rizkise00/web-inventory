@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\StockIn;
 use App\Models\Item;
 use App\Exports\StockInExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -120,11 +121,20 @@ class StockInController extends Controller
 
     public function export(Request $request)
     {
-        return (new StockInExport(
+        $export = new StockInExport(
             $request->input('item_name'),
             $request->input('user_name'),
             $request->input('date_from'),
             $request->input('date_to')
-        ))->download('stock-in.xlsx');
+        );
+
+        if ($request->input('format') === 'pdf') {
+            $data = $export->query()->get();
+            return Pdf::loadView('exports.pdf.stock-in', compact('data'))
+                ->setPaper('a4', 'landscape')
+                ->download('stock-in.pdf');
+        }
+
+        return $export->download('stock-in.xlsx');
     }
 }

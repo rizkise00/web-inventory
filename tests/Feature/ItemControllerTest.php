@@ -127,6 +127,47 @@ class ItemControllerTest extends TestCase
             ->assertDownload('products.xlsx');
     }
 
+    // --- PDF export tests ---
+
+    public function test_user_can_export_items_as_pdf(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/items/export?format=pdf')
+            ->assertDownload('products.pdf');
+    }
+
+    public function test_manager_can_export_items_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/items/export?format=pdf')
+            ->assertDownload('products.pdf');
+    }
+
+    public function test_export_items_pdf_with_search_filter(): void
+    {
+        Category::factory()->create();
+        Item::factory()->create(['name' => 'PDF Laptop Test']);
+
+        $this->actingAs($this->user())
+            ->get('/items/export?format=pdf&search=PDF+Laptop+Test')
+            ->assertDownload('products.pdf');
+    }
+
+    public function test_export_items_pdf_with_low_stock_filter(): void
+    {
+        Item::factory()->create(['stock' => 1]);
+
+        $this->actingAs($this->user())
+            ->get('/items/export?format=pdf&low_stock=1')
+            ->assertDownload('products.pdf');
+    }
+
+    public function test_guest_cannot_export_items_pdf(): void
+    {
+        $this->get('/items/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
+
     // --- Manager CRUD tests ---
 
     public function test_manager_can_view_items(): void

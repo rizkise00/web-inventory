@@ -115,6 +115,77 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     @stack('scripts')
 
+    <!-- Universal Export Modal -->
+    <div id="exportModal" class="fixed inset-0 z-[9999] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeExportModal()"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4" style="z-index:1;">
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">Export Data</h3>
+                <p class="text-sm text-gray-500 mt-1">Choose export format</p>
+            </div>
+            <div class="flex gap-3 mb-4">
+                <a id="exportExcelBtn" href="#"
+                   class="flex-1 flex flex-col items-center gap-2 py-4 px-3 bg-green-50 hover:bg-green-100 border-2 border-green-200 hover:border-green-500 rounded-xl transition-all group cursor-pointer">
+                    <div class="w-10 h-10 bg-green-600 group-hover:bg-green-700 rounded-xl flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-green-800">Excel</span>
+                    <span class="text-xs text-green-600">.xlsx</span>
+                </a>
+                <a id="exportPdfBtn" href="#"
+                   class="flex-1 flex flex-col items-center gap-2 py-4 px-3 bg-red-50 hover:bg-red-100 border-2 border-red-200 hover:border-red-500 rounded-xl transition-all group cursor-pointer">
+                    <div class="w-10 h-10 bg-red-600 group-hover:bg-red-700 rounded-xl flex items-center justify-center transition-colors">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-red-800">PDF</span>
+                    <span class="text-xs text-red-600">.pdf</span>
+                </a>
+            </div>
+            <button onclick="closeExportModal()"
+                class="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-all text-sm">
+                Cancel
+            </button>
+        </div>
+    </div>
+    <script>
+    function openExportModal(excelUrl, pdfUrl) {
+        document.getElementById('exportExcelBtn').href = excelUrl;
+        document.getElementById('exportPdfBtn').href = pdfUrl;
+        var modal = document.getElementById('exportModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    function closeExportModal() {
+        var modal = document.getElementById('exportModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeExportModal();
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-export-btn]').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openExportModal(
+                    btn.getAttribute('data-excel-url'),
+                    btn.getAttribute('data-pdf-url')
+                );
+            });
+        });
+    });
+    </script>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         @if(session('success') || session('status'))

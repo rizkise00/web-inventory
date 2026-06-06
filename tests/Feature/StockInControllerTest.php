@@ -258,4 +258,50 @@ class StockInControllerTest extends TestCase
             ->get('/stock-in/export?date_from=2026-01-01&date_to=2026-12-31')
             ->assertDownload('stock-in.xlsx');
     }
+
+    // --- PDF export tests ---
+
+    public function test_user_can_export_stock_in_as_pdf(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-in/export?format=pdf')
+            ->assertDownload('stock-in.pdf');
+    }
+
+    public function test_manager_can_export_stock_in_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/stock-in/export?format=pdf')
+            ->assertDownload('stock-in.pdf');
+    }
+
+    public function test_export_stock_in_pdf_with_item_name_filter(): void
+    {
+        $item = Item::factory()->create(['name' => 'Laptop PDF Test', 'stock' => 0]);
+        StockIn::factory()->create(['item_id' => $item->id]);
+
+        $this->actingAs($this->user())
+            ->get('/stock-in/export?format=pdf&item_name=Laptop+PDF+Test')
+            ->assertDownload('stock-in.pdf');
+    }
+
+    public function test_export_stock_in_pdf_with_date_range_filter(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-in/export?format=pdf&date_from=2026-01-01&date_to=2026-12-31')
+            ->assertDownload('stock-in.pdf');
+    }
+
+    public function test_guest_cannot_export_stock_in_pdf(): void
+    {
+        $this->get('/stock-in/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
+
+    public function test_excel_export_unaffected_by_pdf_feature(): void
+    {
+        $this->actingAs($this->user())
+            ->get('/stock-in/export')
+            ->assertDownload('stock-in.xlsx');
+    }
 }

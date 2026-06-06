@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Exports\UserExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -178,12 +179,21 @@ class UserController extends Controller
             return redirect()->route('dashboard')->with('error', 'Unauthorized action.');
         }
 
-        return (new UserExport(
+        $export = new UserExport(
             $request->input('search'),
             $request->input('role'),
             $request->input('status'),
             $request->input('date_from'),
             $request->input('date_to')
-        ))->download('users.xlsx');
+        );
+
+        if ($request->input('format') === 'pdf') {
+            $data = $export->query()->get();
+            return Pdf::loadView('exports.pdf.users', compact('data'))
+                ->setPaper('a4', 'landscape')
+                ->download('users.pdf');
+        }
+
+        return $export->download('users.xlsx');
     }
 }

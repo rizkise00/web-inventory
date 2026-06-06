@@ -179,6 +179,44 @@ class UserControllerTest extends TestCase
             ->assertRedirect(route('dashboard'));
     }
 
+    // --- PDF export tests ---
+
+    public function test_manager_can_export_users_as_pdf(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/users/export?format=pdf')
+            ->assertDownload('users.pdf');
+    }
+
+    public function test_non_manager_cannot_export_users_as_pdf(): void
+    {
+        $this->actingAs($this->regular())
+            ->get('/users/export?format=pdf')
+            ->assertRedirect(route('dashboard'));
+    }
+
+    public function test_export_users_pdf_with_role_filter(): void
+    {
+        User::factory()->manager()->create();
+
+        $this->actingAs($this->manager())
+            ->get('/users/export?format=pdf&role=manager')
+            ->assertDownload('users.pdf');
+    }
+
+    public function test_export_users_pdf_with_status_filter(): void
+    {
+        $this->actingAs($this->manager())
+            ->get('/users/export?format=pdf&status=approved')
+            ->assertDownload('users.pdf');
+    }
+
+    public function test_guest_cannot_export_users_pdf(): void
+    {
+        $this->get('/users/export?format=pdf')
+            ->assertRedirect(route('login'));
+    }
+
     // --- Admin (non-manager) blocked tests for all user management routes ---
 
     public function test_admin_cannot_access_create_user_form(): void

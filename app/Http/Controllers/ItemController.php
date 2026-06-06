@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Item;
 use App\Models\Category;
 use App\Exports\ItemExport;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class ItemController extends Controller
@@ -99,11 +100,20 @@ class ItemController extends Controller
 
     public function export(Request $request)
     {
-        return (new ItemExport(
+        $export = new ItemExport(
             $request->input('search'),
             $request->input('low_stock'),
             $request->input('date_from'),
             $request->input('date_to')
-        ))->download('products.xlsx');
+        );
+
+        if ($request->input('format') === 'pdf') {
+            $data = $export->query()->get();
+            return Pdf::loadView('exports.pdf.items', compact('data'))
+                ->setPaper('a4', 'landscape')
+                ->download('products.pdf');
+        }
+
+        return $export->download('products.xlsx');
     }
 }
